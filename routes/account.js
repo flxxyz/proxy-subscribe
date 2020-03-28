@@ -2,12 +2,13 @@ var router = require('express').Router()
 var AV = require('leanengine')
 var util = require('../utils/util')
 
-var Account = AV.Object.extend('Account')
-var Link = AV.Object.extend('Link')
-
 router.get('/', async function (req, res, next) {
-    var query = new AV.Query(Account)
-    let accounts = await query.find()
+    let [getAccountAllError, accounts] = await util.execute(AV.Cloud.run('getAccountAll'))
+
+    if (getAccountAllError) {
+        accounts = []
+    }
+
     accounts = accounts.map((v) => {
         let serviceType = v.get('serviceType')
         return {
@@ -22,8 +23,12 @@ router.get('/', async function (req, res, next) {
         }
     })
 
-    query = new AV.Query(Link)
-    let links = await query.find()
+    let [getLinkAllError, links] = await util.execute(AV.Cloud.run('getLinkAll'))
+
+    if (getLinkAllError) {
+        links = []
+    }
+
     links = links.map((v) => {
         return {
             objectId: v.get('objectId'),

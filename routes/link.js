@@ -1,7 +1,6 @@
 var router = require('express').Router()
 var AV = require('leanengine')
-
-var Link = AV.Object.extend('Link')
+var util = require('../utils/util')
 
 router.get('/', function (req, res, next) {
     return res.redirect('/')
@@ -16,20 +15,21 @@ router.get('/:linkId', async function (req, res, next) {
         return res.send(link.content)
     }
 
-    let query = new AV.Query(Link)
-    query.equalTo('linkId', req.params.linkId)
-    let row = await query.first()
-    if (!row) {
+    let [getLinkError, link] = await util.execute(AV.Cloud.run('getLink', {
+        linkId: req.params.linkId
+    }))
+
+    if (getLinkError) {
         return res.redirect('/')
     }
 
-    if (row.get('isDisable')) {
+    if (link.get('isDisable')) {
         return res.send('')
     }
 
     global.map[req.params.linkId] = {
         time: new String(Math.round(new Date().getTime() / 1000)),
-        content: row.get('content'),
+        content: link.get('content'),
     }
     // let link = AV.Object.createWithoutData('Link', row.get('objectId'))
     // link.increment('counter', 1)

@@ -50,7 +50,7 @@ const settingTemplate = {
 
 const response = (message = 'success', state = 0, data) => {
     return {
-        message: '',
+        message: message,
         state: state,
         data: data || {},
     }
@@ -66,8 +66,13 @@ router.post('/generate', async function (req, res, next) {
         return res.send(response('无ids', 1))
     }
 
-    let query = new AV.Query(Account)
-    let accounts = await query.containedIn('objectId', ids).find()
+    let [getAccountInError, accounts] = await util.execute(AV.Cloud.run('getAccountIn', {
+        ids: ids
+    }))
+
+    if (getAccountInError) {
+        accounts = []
+    }
 
     let urls = []
     accounts.forEach((v, i) => {
@@ -81,15 +86,18 @@ router.post('/generate', async function (req, res, next) {
         content: generate.build(urls.join('\n')),
     }
 
-    let link = new Link()
-    link.set('linkId', linkId)
-    link.set('content', global.map[linkId].content)
-    link.set('source', urls)
-    await link.save()
-
-    return res.json(response('success', 0, {
+    let [addLinkError, link] = await util.execute(AV.Cloud.run('addLink', {
         linkId: linkId,
+        content: global.map[linkId].content,
+        sourceID: ids,
+        sourceURL: urls,
     }))
+
+    let r = addLinkError ? response('生成订阅地址成功', 0, {
+        linkId: linkId
+    }) : response('生成订阅地址失败', 1)
+
+    return res.json(r)
 })
 
 router.post('/import', function (req, res, next) {
