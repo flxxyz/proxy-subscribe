@@ -23,8 +23,10 @@ app.use(timeout('15s'));
 app.use(AV.express());
 
 app.enable('trust proxy');
-// 需要重定向到 HTTPS 可去除下一行的注释。
-// app.use(AV.Cloud.HttpsRedirect());
+if (app.get('env') === 'production') {
+  // 需要重定向到 HTTPS 可去除下一行的注释。
+  app.use(AV.Cloud.HttpsRedirect());
+}
 
 app.use(express.static('public'));
 
@@ -45,7 +47,6 @@ app.use(require('./middleware/auth'))
 global.map = {}
 
 app.get('/', function (req, res) {
-  console.log(app.get('env'))
   res.render('index', {
     currentTime: new Date()
   });
