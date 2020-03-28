@@ -1,0 +1,30 @@
+<%- include('layout/header', {title: 'login'}) -%>
+<h1 class="title">login</h1>
+<form method="POST" action="/login">
+  <div class="field">
+    <p class="control has-icons-left has-icons-right">
+      <input class="input" type="text" name="user" placeholder="请输入用户名">
+      <span class="icon is-small is-left">
+        <i class="fas fa-user"></i>
+      </span>
+      <span class="icon is-small is-right">
+        <i class="fas fa-check"></i>
+      </span>
+    </p>
+  </div>
+  <div class="field">
+    <p class="control has-icons-left">
+      <input class="input" type="text" name="pass" placeholder="请输入密码">
+      <span class="icon is-small is-left">
+        <i class="fas fa-lock"></i>
+      </span>
+    </p>
+  </div>
+  <div class="field">
+    <p class="control">
+      <button type="submit" class="button is-success">登录</button>
+    </p>
+  </div>
+</form>
+<p>当前时间：<%= currentTime %></p>
+<%- include('layout/footer') -%>

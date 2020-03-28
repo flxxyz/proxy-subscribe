@@ -1,0 +1,14 @@
+a {
+  color: #00b7ff;
+}
+
+table {
+  width: 100%;
+  table-layout: fixed;
+  word-break: normal;
+}
+
+tr td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

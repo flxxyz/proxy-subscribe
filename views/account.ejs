@@ -1,0 +1,193 @@
+<%- include('layout/header', {title: '用户中心'}) -%>
+<link rel="stylesheet" href="/stylesheets/tab.css">
+<div class="tab">
+    <input type="radio" id="tab-link" name="tab-control" checked>
+    <input type="radio" id="tab-share" name="tab-control">
+    <ul>
+        <li><label for="tab-link" role="button"><span>服务器管理</span></label></li>
+        <li><label for="tab-share" role="button"><span>订阅管理</span></label></li>
+    </ul>
+    <div class="slider">
+        <div class="indicator"></div>
+    </div>
+    <div class="content">
+        <section>
+            <div lass="section">
+                <div class="container is-fluid">
+                    <div class="columns">
+                        <div class="column is-half">
+                            <div class="dropdown">
+                                <div class="dropdown-trigger">
+                                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                                        <span>选项</span>
+                                        <span class="icon is-small">
+                                            <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                        </span>
+                                    </button>
+                                </div>
+                                <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                                    <div class="dropdown-content">
+                                        <a href="#" class="dropdown-item">导入订阅地址</a>
+                                        <a href="#" class="dropdown-item">导入ssr链接</a>
+                                        <a href="#" class="dropdown-item">导入ss链接</a>
+                                        <hr class="dropdown-divider">
+                                        <a href="#" class="dropdown-item">添加vmess链接</a>
+                                        <a href="#" class="dropdown-item">添加ssr链接</a>
+                                        <a href="#" class="dropdown-item">添加ss链接</a>
+                                        <hr class="dropdown-divider">
+                                    </div>
+                                </div>
+                            </div>
+                            <a class="button is-warning">生成V2RAY订阅</a>
+                            <a class="button is-warning">生成SSR订阅</a>
+                        </div>
+                        <div class="column is-half">
+                            <div class="field has-addons has-addons-right">
+                                <div class="control">
+                                    <input class="input" type="text" placeholder="">
+                                </div>
+                                <div class="control">
+                                    <a class="button is-info">查找</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <table class="table is-hoverable">
+                <thead>
+                    <tr>
+                        <th class="has-text-left" width="38px">
+                            <label class="checkbox">
+                                <input type="checkbox">
+                            </label>
+                        </th>
+                        <th class="has-text-left" width="15%">别名</th>
+                        <th class="has-text-left" width="90px">服务类型</th>
+                        <th class="has-text-left">地址</th>
+                        <th class="has-text-left" width="80px">端口</th>
+                        <th class="has-text-left" width="10%">加密方式</th>
+                        <th class="has-text-left" width="10%">协议</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for(let account of accounts) {%>
+                    <tr class="account" data-target="modal-ter" aria-haspopup="true">
+                        <td class="selector">
+                            <label class="checkbox">
+                                <input type="checkbox" class="source" data-data="<%= account.source %>">
+                            </label>
+                        </td>
+                        <td class="remarks" title="<%= account.remarks %>">
+                            <a href="javascript:;"><%= account.remarks %></a>
+                        </td>
+                        <td class="serviceType" title="<%= account.serviceType %>"><%= account.serviceType %>
+                        </td>
+                        <td class="host" title="<%= account.host %>"><%= account.host %></td>
+                        <td class="port" title="<%= account.port %>"><%= account.port %></td>
+                        <td class="encrypt" title="<%= account.encrypt %>"><%= account.encrypt %></td>
+                        <td class="protocol" title="<%= account.protocol %>"><%= account.protocol %></td>
+                    </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </section>
+        <section>
+            <table class="table is-hoverable">
+                <thead>
+                    <tr>
+                        <th class="has-text-left" width="38px">
+                            <label class="checkbox">
+                                <input type="checkbox">
+                            </label>
+                        </th>
+                        <th class="has-text-left" width="182px">linkId</th>
+                        <th class="has-text-left">ID</th>
+                        <th class="has-text-left">URL</th>
+                        <th class="has-text-left" width="10%">禁用</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for(let link of links) { %>
+                    <tr class="subscribe" data-target="modal-ter" aria-haspopup="true">
+                        <td class="selector">
+                            <label class="checkbox">
+                                <input type="checkbox" class="source" data-data="<%= link.source %>">
+                            </label>
+                        </td>
+                        <td title="<%= link.linkId %>"><%= link.linkId %></td>
+                        <td>
+                            <% for(let id of link.sourceID) {  %>
+                            <p title="<%= id %>"><%= id %></p>
+                            <% } %>
+                        </td>
+                        <td>
+                            <% for(let url of link.sourceURL) {  %>
+                            <a class="url" href="javascript:;" title="<%= url %>"><%= url %></a>
+                            <% } %>
+                        </td>
+                        <td>
+                            <%= link.isDisable %>
+                        </td>
+                    </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </section>
+    </div>
+</div>
+<div id="modal-ter" class="modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title"></p>
+            <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+            <div class="content socks">
+                <h3 class="title-3">二维码</h3>
+                <figure class="image is-square">
+                    <img src="https://bulma.io/images/placeholders/480x480.png">
+                </figure>
+                <h3 class="title-3">配置信息</h3>
+                <pre class="conf-text"></pre>
+            </div>
+            <div class="content ss">
+                <h3 class="title-3">二维码</h3>
+                <figure class="image is-square">
+                    <img src="https://bulma.io/images/placeholders/480x480.png">
+                </figure>
+                <h3 class="title-3">配置信息</h3>
+                <h4 class="title-4">文本</h4>
+                <pre class="conf-text"></pre>
+                <h4 class="title-4">JSON</h4>
+                <pre class="conf-json"></pre>
+            </div>
+            <div class="content ssr">
+                <h3 class="title-3">二维码</h3>
+                <figure class="image is-square">
+                    <img src="https://bulma.io/images/placeholders/480x480.png">
+                </figure>
+                <h3 class="title-3">配置信息</h3>
+                <h4 class="title-4">文本</h4>
+                <pre class="conf-text"></pre>
+                <h4 class="title-4">JSON</h4>
+                <pre class="conf-json"></pre>
+            </div>
+            <div class="content vmess">
+                <h3 class="title-3">二维码</h3>
+                <figure class="image is-square">
+                    <img src="https://bulma.io/images/placeholders/480x480.png">
+                </figure>
+                <h3 class="title-3">配置信息</h3>
+                <h4 class="title-4">文本</h4>
+                <pre class="conf-text"></pre>
+            </div>
+        </section>
+        <footer class="modal-card-foot">
+            <button class="button is-success">明白</button>
+            <button class="button">关闭</button>
+        </footer>
+    </div>
+</div>
+<%- include('layout/footer') -%>
