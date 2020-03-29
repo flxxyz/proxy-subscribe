@@ -53,10 +53,10 @@ const generateSocks = (template, value) => {
 }
 
 const compose = (type, data, salt = '') => {
-    return `${type}://${Base64.encode(data)}${salt}`
+    return `${type}://${base64(data)}${salt}`
 }
 
-const build = (data) => {
+const base64 = (data) => {
     return Base64.encode(data)
 }
 
@@ -66,5 +66,5 @@ module.exports = {
     generateSs,
     generateSocks,
     compose,
-    build,
+    base64,
 }

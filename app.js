@@ -44,7 +44,7 @@ app.use(AV.Cloud.CookieSession({
 
 app.use(require('./middleware/auth'))
 
-global.map = {}
+global.cache = {}
 
 app.get('/', function (req, res) {
   res.render('index', {

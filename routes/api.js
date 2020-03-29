@@ -81,19 +81,19 @@ router.post('/generate', async function (req, res, next) {
     })
 
     let linkId = uuid()
-    global.map[linkId] = {
+    global.cache[linkId] = {
         time: new String(Math.round(new Date().getTime() / 1000)),
-        content: generate.build(urls.join('\n')),
+        content: generate.base64(urls.join('\n')),
     }
 
     let [addLinkError, link] = await util.execute(AV.Cloud.run('addLink', {
         linkId: linkId,
-        content: global.map[linkId].content,
+        content: global.cache[linkId].content,
         sourceID: ids,
         sourceURL: urls,
     }))
 
-    let r = addLinkError ? response('生成订阅地址成功', 0, {
+    let r = !addLinkError ? response('生成订阅地址成功', 0, {
         linkId: linkId
     }) : response('生成订阅地址失败', 1)
 
@@ -103,7 +103,7 @@ router.post('/generate', async function (req, res, next) {
 router.post('/import', function (req, res, next) {
     return res.json({
         method: 'import',
-        map: global.map
+        body: req.body,
     })
 })
 

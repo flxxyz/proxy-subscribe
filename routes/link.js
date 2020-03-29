@@ -7,10 +7,10 @@ router.get('/', function (req, res, next) {
 })
 router.get('/:linkId', async function (req, res, next) {
     res.set('Content-Type', 'text/plain')
-    if (typeof global.map[req.params.linkId] !== 'undefined') {
-        let link = global.map[req.params.linkId]
+    if (typeof global.cache[req.params.linkId] !== 'undefined') {
+        let link = global.cache[req.params.linkId]
         if ((link.time + 3600) <= new Date().getTime()) {
-            delete global.map[req.params.linkId]
+            delete global.cache[req.params.linkId]
         }
         return res.send(link.content)
     }
@@ -27,7 +27,7 @@ router.get('/:linkId', async function (req, res, next) {
         return res.send('')
     }
 
-    global.map[req.params.linkId] = {
+    global.cache[req.params.linkId] = {
         time: new String(Math.round(new Date().getTime() / 1000)),
         content: link.get('content'),
     }
@@ -35,7 +35,7 @@ router.get('/:linkId', async function (req, res, next) {
     // link.increment('counter', 1)
     // link.save()
 
-    return res.send(global.map[req.params.linkId].content)
+    return res.send(global.cache[req.params.linkId].content)
 })
 
 

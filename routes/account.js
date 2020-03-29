@@ -9,9 +9,9 @@ router.get('/', async function (req, res, next) {
         accounts = []
     }
 
-    accounts = accounts.map((v) => {
+    accounts.forEach((v, i) => {
         let serviceType = v.get('serviceType')
-        return {
+        accounts[i] = {
             objectId: v.get('objectId'),
             source: JSON.stringify(v.toFullJSON()),
             remarks: v.get('remarks'),
@@ -29,8 +29,8 @@ router.get('/', async function (req, res, next) {
         links = []
     }
 
-    links = links.map((v) => {
-        return {
+    links.forEach((v, i) => {
+        links[i] = {
             objectId: v.get('objectId'),
             source: JSON.stringify(v.toFullJSON()),
             linkId: v.get('linkId'),
