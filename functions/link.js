@@ -4,33 +4,59 @@ const util = require('../utils/util')
 AV.Cloud.define('getLink', async function (req) {
     let query = new AV.Query('Link')
     let fields = req.params || {}
-    Object.keys(fields).map(key => {
-        query.equalTo(key, fields[key])
+    Object.keys(fields).forEach(key => {
+        if (!['asc', 'desc'].includes(key)) {
+            query.equalTo(key, fields[key])
+        }
     })
+
+    if (req.params.asc) {
+        query.ascending(req.params.asc)
+    }
+    if (req.params.desc) {
+        query.descending(req.params.desc)
+    }
+
     return await query.first()
 })
 
 AV.Cloud.define('getLinkIn', async function (req) {
     let query = new AV.Query('Link')
+
+    if (req.params.asc) {
+        query.ascending(req.params.asc)
+    }
+    if (req.params.desc) {
+        query.descending(req.params.desc)
+    }
+
     return await query.containedIn('objectId', req.params.ids).find()
 })
 
 AV.Cloud.define('getLinkAll', async function (req) {
     let query = new AV.Query('Link')
+
+    if (req.params.asc) {
+        query.ascending(req.params.asc)
+    }
+    if (req.params.desc) {
+        query.descending(req.params.desc)
+    }
+
     return await query.find()
 })
 
 AV.Cloud.define('addLink', async function (req) {
     let linkId = req.params.linkId
     let content = req.params.content
-    let ids = req.params.ids
-    let urls = req.params.urls
+    let sourceID = req.params.sourceID
+    let sourceURL = req.params.sourceURL
 
     let link = new AV.Object('Link')
     link.set('linkId', linkId)
     link.set('content', content)
-    link.set('sourceID', ids)
-    link.set('sourceURL', urls)
+    link.set('sourceID', sourceID)
+    link.set('sourceURL', sourceURL)
     let [err, res] = await util.execute(link.save())
     if (err) {
         console.error('[addLink]', err.message)

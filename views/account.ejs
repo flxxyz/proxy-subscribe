@@ -1,5 +1,6 @@
 <%- include('layout/header', {title: '用户中心'}) -%>
 <link rel="stylesheet" href="/stylesheets/tab.css">
+
 <div class="tab">
     <input type="radio" id="tab-link" name="tab-control" checked>
     <input type="radio" id="tab-share" name="tab-control">
@@ -38,8 +39,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <a class="button is-warning">生成V2RAY订阅</a>
-                            <a class="button is-warning">生成SSR订阅</a>
+                            <a class="button is-warning generate">生成V2RAY订阅</a>
+                            <a class="button is-warning generate">生成SSR订阅</a>
                         </div>
                         <div class="column is-half">
                             <div class="field has-addons has-addons-right">
@@ -57,23 +58,23 @@
             <table class="table is-hoverable">
                 <thead>
                     <tr>
-                        <th class="has-text-left" width="38px">
+                        <th class="has-text-left choose" width="38px">
                             <label class="checkbox">
-                                <input type="checkbox">
+                                <input class="account" type="checkbox">
                             </label>
                         </th>
                         <th class="has-text-left" width="15%">别名</th>
                         <th class="has-text-left" width="90px">服务类型</th>
                         <th class="has-text-left">地址</th>
-                        <th class="has-text-left" width="80px">端口</th>
-                        <th class="has-text-left" width="10%">加密方式</th>
-                        <th class="has-text-left" width="10%">协议</th>
+                        <th class="has-text-left" width="90px">端口</th>
+                        <th class="has-text-left" width="90px">加密方式</th>
+                        <th class="has-text-left" width="90px">协议</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% for(let account of accounts) {%>
                     <tr class="account" data-target="modal-ter" aria-haspopup="true">
-                        <td class="selector">
+                        <td class="choose-item" data-type="account">
                             <label class="checkbox">
                                 <input type="checkbox" class="source" data-data="<%= account.source %>">
                             </label>
@@ -81,7 +82,7 @@
                         <td class="remarks" title="<%= account.remarks %>">
                             <a href="javascript:;"><%= account.remarks %></a>
                         </td>
-                        <td class="serviceType" title="<%= account.serviceType %>"><%= account.serviceType %>
+                        <td class="service-type" title="<%= account.serviceType %>"><%= account.serviceType %>
                         </td>
                         <td class="host" title="<%= account.host %>"><%= account.host %></td>
                         <td class="port" title="<%= account.port %>"><%= account.port %></td>
@@ -96,37 +97,39 @@
             <table class="table is-hoverable">
                 <thead>
                     <tr>
-                        <th class="has-text-left" width="38px">
+                        <th class="has-text-left choose" width="38px">
                             <label class="checkbox">
-                                <input type="checkbox">
+                                <input class="subscribe" type="checkbox">
                             </label>
                         </th>
-                        <th class="has-text-left" width="182px">linkId</th>
-                        <th class="has-text-left">ID</th>
-                        <th class="has-text-left">URL</th>
+                        <th class="has-text-left" width="182px">订阅ID</th>
+                        <th class="has-text-left" width="20%">服务器ID</th>
+                        <th class="has-text-left">包含的URL</th>
                         <th class="has-text-left" width="10%">禁用</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% for(let link of links) { %>
                     <tr class="subscribe" data-target="modal-ter" aria-haspopup="true">
-                        <td class="selector">
+                        <td class="choose-item" data-type="subscribe">
                             <label class="checkbox">
                                 <input type="checkbox" class="source" data-data="<%= link.source %>">
                             </label>
                         </td>
-                        <td title="<%= link.linkId %>"><%= link.linkId %></td>
-                        <td>
+                        <td class="link-id" title="点击复制">
+                            <a href="javascript:;"><%= link.linkId %></a>
+                        </td>
+                        <td class="ids">
                             <% for(let id of link.sourceID) {  %>
-                            <p title="<%= id %>"><%= id %></p>
+                            <span class="id" title="<%= id %>"><%= id %></span>
                             <% } %>
                         </td>
-                        <td>
+                        <td class="urls">
                             <% for(let url of link.sourceURL) {  %>
-                            <a class="url" href="javascript:;" title="<%= url %>"><%= url %></a>
+                            <a class="url" href="javascript:;" title="点击复制"><%= url %></a>
                             <% } %>
                         </td>
-                        <td>
+                        <td class="is-disable">
                             <%= link.isDisable %>
                         </td>
                     </tr>
@@ -190,4 +193,6 @@
         </footer>
     </div>
 </div>
+<script src="/scripts/base64.min.js"></script>
+<script src="/scripts/generate.js"></script>
 <%- include('layout/footer') -%>
