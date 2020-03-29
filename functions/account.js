@@ -10,11 +10,13 @@ AV.Cloud.define('getAccount', async function (req) {
         }
     })
 
-    if (req.params.asc) {
-        query.ascending(req.params.asc)
+    let asc = fields.asc || 'createdAt'
+    let desc = fields.desc || 'createdAt'
+    if (asc) {
+        query.ascending(asc)
     }
-    if (req.params.desc) {
-        query.descending(req.params.desc)
+    if (desc) {
+        query.descending(desc)
     }
 
     return await query.first()
@@ -23,24 +25,30 @@ AV.Cloud.define('getAccount', async function (req) {
 AV.Cloud.define('getAccountIn', async function (req) {
     let query = new AV.Query('Account')
 
-    if (req.params.asc) {
-        query.ascending(req.params.asc)
+    let fields = req.params || {}
+    let asc = fields.asc || 'createdAt'
+    let desc = fields.desc || 'createdAt'
+    if (asc) {
+        query.ascending(asc)
     }
-    if (req.params.desc) {
-        query.descending(req.params.desc)
+    if (desc) {
+        query.descending(desc)
     }
 
-    return await query.containedIn('objectId', req.params.ids).find()
+    return await query.containedIn('objectId', ids).find()
 })
 
 AV.Cloud.define('getAccountAll', async function (req) {
     let query = new AV.Query('Account')
 
-    if (req.params.asc) {
-        query.ascending(req.params.asc)
+    let fields = req.params || {}
+    let asc = fields.asc || 'createdAt'
+    let desc = fields.desc || 'createdAt'
+    if (asc) {
+        query.ascending(asc)
     }
-    if (req.params.desc) {
-        query.descending(req.params.desc)
+    if (desc) {
+        query.descending(desc)
     }
 
     return await query.find()

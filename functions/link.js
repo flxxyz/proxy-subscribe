@@ -10,11 +10,13 @@ AV.Cloud.define('getLink', async function (req) {
         }
     })
 
-    if (req.params.asc) {
-        query.ascending(req.params.asc)
+    let asc = fields.asc || 'createdAt'
+    let desc = fields.desc || 'createdAt'
+    if (asc) {
+        query.ascending(asc)
     }
-    if (req.params.desc) {
-        query.descending(req.params.desc)
+    if (desc) {
+        query.descending(desc)
     }
 
     return await query.first()
@@ -23,11 +25,14 @@ AV.Cloud.define('getLink', async function (req) {
 AV.Cloud.define('getLinkIn', async function (req) {
     let query = new AV.Query('Link')
 
-    if (req.params.asc) {
-        query.ascending(req.params.asc)
+    let fields = req.params || {}
+    let asc = fields.asc || 'createdAt'
+    let desc = fields.desc || 'createdAt'
+    if (asc) {
+        query.ascending(asc)
     }
-    if (req.params.desc) {
-        query.descending(req.params.desc)
+    if (desc) {
+        query.descending(desc)
     }
 
     return await query.containedIn('objectId', req.params.ids).find()
@@ -36,11 +41,14 @@ AV.Cloud.define('getLinkIn', async function (req) {
 AV.Cloud.define('getLinkAll', async function (req) {
     let query = new AV.Query('Link')
 
-    if (req.params.asc) {
-        query.ascending(req.params.asc)
+    let fields = req.params || {}
+    let asc = fields.asc || 'createdAt'
+    let desc = fields.desc || 'createdAt'
+    if (asc) {
+        query.ascending(asc)
     }
-    if (req.params.desc) {
-        query.descending(req.params.desc)
+    if (desc) {
+        query.descending(desc)
     }
 
     return await query.find()
