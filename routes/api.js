@@ -59,7 +59,7 @@ const response = (message = 'success', state = 0, data) => {
 router.post('/generate', async function (req, res, next) {
     let ids = []
     if (req.body.ids && typeof req.body.ids !== 'object') {
-        ids = req.body.ids.split(',').filter(v => v !== '')
+        ids = [...new Set(req.body.ids.split(',').filter(v => v !== ''))]
     }
 
     if (ids.length === 0) {
@@ -104,6 +104,17 @@ router.post('/import', function (req, res, next) {
     return res.json({
         method: 'import',
         body: req.body,
+    })
+})
+
+router.post('/delete', function (req, res, next) {
+    let ids = []
+    if (req.body.ids && typeof req.body.ids !== 'object') {
+        ids = ids = [...new Set(req.body.ids.split(',').filter(v => v !== ''))]
+    }
+
+    return res.json({
+        ids: ids,
     })
 })
 
