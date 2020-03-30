@@ -45,9 +45,13 @@ router.get('/', async function (req, res, next) {
         links: links,
     })
 })
-router.post('/add', function (req, res, next) {
-    res.send('add')
-})
 
+router.get('/logout', function (req, res, next) {
+    if (typeof req.currentUser !== 'undefined') {
+        req.currentUser.logOut()
+        res.clearCurrentUser()
+    }
+    res.redirect('/')
+})
 
 module.exports = router

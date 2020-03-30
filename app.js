@@ -52,7 +52,6 @@ app.get('/', function (req, res) {
   });
 })
 app.use('/login', require('./routes/login'))
-app.use('/logout', require('./routes/logout'))
 app.use('/account', require('./routes/account'))
 app.use('/link', require('./routes/link'))
 app.use('/api', require('./routes/api'))
