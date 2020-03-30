@@ -26,6 +26,7 @@ AV.Cloud.define('getAccountIn', async function (req) {
     let query = new AV.Query('Account')
 
     let fields = req.params || {}
+    let ids = fields.ids || []
     let asc = fields.asc || 'createdAt'
     let desc = fields.desc || 'createdAt'
     if (asc) {
