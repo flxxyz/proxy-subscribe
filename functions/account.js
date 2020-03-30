@@ -54,3 +54,20 @@ AV.Cloud.define('getAccountAll', async function (req) {
 
     return await query.find()
 })
+
+AV.Cloud.define('deleteAccount', async function (req) {
+    let fields = req.params || {}
+    let ids = fields.ids || []
+
+    let [err, accounts] = await util.execute(AV.Cloud.run('getAccountIn', {
+        ids
+    }))
+
+    if (err) {
+        return false
+    } else {
+        await AV.Object.destroyAll(accounts)
+        ids = accounts.map(v => v.get('objectId'))
+        return ids
+    }
+})

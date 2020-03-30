@@ -57,27 +57,29 @@ const response = (message = 'success', state = 0, data) => {
 }
 
 router.post('/generate', async function (req, res, next) {
+    let r = response()
+
     let ids = []
     if (req.body.ids && typeof req.body.ids !== 'object') {
         ids = [...new Set(req.body.ids.split(',').filter(v => v !== ''))]
     }
 
     if (ids.length === 0) {
-        return res.send(response('无ids', 1))
+        [r.message, r.state] = ['缺少参数ids', 3]
+        return res.send(r)
     }
 
     let [getAccountInError, accounts] = await util.execute(AV.Cloud.run('getAccountIn', {
-        ids: ids
+        ids
     }))
 
     if (getAccountInError) {
         accounts = []
     }
 
-    let urls = []
-    accounts.forEach((v, i) => {
+    let urls = accounts.map(v => {
         let g = generate[`generate${v.get('serviceType').replace(/^\S/, s => s.toUpperCase())}`]
-        urls.push(g(util.clone(template[v.get('serviceType')]), v))
+        return g(util.clone(template[v.get('serviceType')]), v)
     })
 
     let linkId = uuid()
@@ -86,16 +88,24 @@ router.post('/generate', async function (req, res, next) {
         content: generate.base64(urls.join('\n')),
     }
 
-    let [addLinkError, link] = await util.execute(AV.Cloud.run('addLink', {
+    let [addLinkError, isAdded] = await util.execute(AV.Cloud.run('addLink', {
         linkId: linkId,
         content: global.cache[linkId].content,
         sourceID: ids,
         sourceURL: urls,
     }))
 
-    let r = !addLinkError ? response('生成订阅地址成功', 0, {
-        linkId: linkId
-    }) : response('生成订阅地址失败', 1)
+    if (addLinkError) {
+        [r.message, r.state] = ['生成订阅地址出现错误', 2]
+    } else {
+        if (!isAdded) {
+            [r.message, r.state, r.data] = ['生成订阅地址失败', 1]
+        } else {
+            [r.message, r.state, r.data] = ['生成订阅地址成功', 0, {
+                link: isAdded
+            }]
+        }
+    }
 
     return res.json(r)
 })
@@ -107,15 +117,48 @@ router.post('/import', function (req, res, next) {
     })
 })
 
-router.post('/delete', function (req, res, next) {
+router.post('/delete', async function (req, res, next) {
+    let r = response()
+
     let ids = []
-    if (req.body.ids && typeof req.body.ids !== 'object') {
-        ids = ids = [...new Set(req.body.ids.split(',').filter(v => v !== ''))]
+    if (req.body.ids && util.Type.isString(req.body.ids)) {
+        ids = [...new Set(req.body.ids.split(',').filter(v => v !== ''))]
     }
 
-    return res.json({
-        ids: ids,
-    })
+    if (ids.length === 0) {
+        [r.message, r.state] = ['缺少参数ids', 3]
+        return res.send(r)
+    }
+
+    if (!req.body.className) {
+        [r.message, r.state] = ['缺少参数className', 3]
+        return res.json(r)
+    }
+
+    let className = req.body.className
+    if (!['Account', 'Link'].includes(className)) {
+        [r.message, r.state] = ['不存在的数据表', 3]
+        return res.json(r)
+    }
+
+    let [err, isDeleted] = await util.execute(AV.Cloud.run(`delete${className}`, {
+        ids
+    }))
+
+    if (err) {
+        [r.message, r.state] = ['删除出现错误', 2]
+        return res.json(r)
+    } else {
+        if (!isDeleted) {
+            [r.message, r.state, r.data] = ['删除失败', 1]
+        } else {
+            [r.message, r.state, r.data] = ['删除成功', 0, {
+                ids: isDeleted
+            }]
+        }
+    }
+
+    return res.json(r)
 })
 
 module.exports = router

@@ -26,6 +26,7 @@ AV.Cloud.define('getLinkIn', async function (req) {
     let query = new AV.Query('Link')
 
     let fields = req.params || {}
+    let ids = fields.ids || []
     let asc = fields.asc || 'createdAt'
     let desc = fields.desc || 'createdAt'
     if (asc) {
@@ -35,7 +36,7 @@ AV.Cloud.define('getLinkIn', async function (req) {
         query.descending(desc)
     }
 
-    return await query.containedIn('objectId', req.params.ids).find()
+    return await query.containedIn('objectId', ids).find()
 })
 
 AV.Cloud.define('getLinkAll', async function (req) {
@@ -72,5 +73,22 @@ AV.Cloud.define('addLink', async function (req) {
     } else {
         console.log(`[addLink] 保存成功 objectId: ${res.id}`)
         return res
+    }
+})
+
+AV.Cloud.define('deleteLink', async function (req) {
+    let fields = req.params || {}
+    let ids = fields.ids || []
+
+    let [err, links] = await util.execute(AV.Cloud.run('getLinkIn', {
+        ids
+    }))
+
+    if (err) {
+        return false
+    } else {
+        await AV.Object.destroyAll(links)
+        ids = links.map(v => v.get('objectId'))
+        return ids
     }
 })
