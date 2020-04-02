@@ -4,9 +4,6 @@ var util = require('../utils/util')
 var generate = require('../utils/generate')
 var uuid = require('uuid')
 
-var Account = AV.Object.extend('Account')
-var Link = AV.Object.extend('Link')
-
 const template = {
     vmess: {
         v: '2',
@@ -35,17 +32,14 @@ const template = {
     },
 }
 
-const settingTemplate = {
-    vmess: {
-        encrypt: 'auto',
-        protocol: 'tcp',
-        userId: '',
-        alterId: '',
-        type: 'none',
-        host: '',
-        path: '',
-        tls: '',
-    },
+var AccountTemplate = {
+    host: '',
+    port: '',
+    remarks: '',
+    serviceType: '',
+    socksSetting: {},
+    ssrSetting: {},
+    vmessSetting: {},
 }
 
 const response = (message = 'success', state = 0, data) => {
@@ -85,7 +79,7 @@ router.post('/generate', async function (req, res, next) {
     let linkId = uuid()
     global.cache[linkId] = {
         time: new String(Math.round(new Date().getTime() / 1000)),
-        content: generate.base64(urls.join('\n')),
+        content: generate.encode(urls.join('\n')),
     }
 
     let [addLinkError, isAdded] = await util.execute(AV.Cloud.run('addLink', {
@@ -102,7 +96,7 @@ router.post('/generate', async function (req, res, next) {
             [r.message, r.state, r.data] = ['生成订阅地址失败', 1]
         } else {
             [r.message, r.state, r.data] = ['生成订阅地址成功', 0, {
-                link: isAdded
+                linkId: isAdded.get('linkId')
             }]
         }
     }
@@ -110,11 +104,36 @@ router.post('/generate', async function (req, res, next) {
     return res.json(r)
 })
 
-router.post('/import', function (req, res, next) {
-    return res.json({
-        method: 'import',
-        body: req.body,
-    })
+router.post('/import', async function (req, res, next) {
+    let r = response()
+    // let url = 'https://api.xinjie.eu.org/link/fFQdms0SisvXnowO?sub=3'
+    // let url = 'https://proxy.flxxyz.com/link/62f9444f-0a8b-454b-ae56-6f05ded9318e'
+    // let [err, content] = await util.request({
+    //     url
+    // })
+    
+    // if (err) {
+    //     [r.message, r.state, r.data] = ['获取订阅内容出错', 2, results]
+    // }
+
+    // let results = generate.decode(content).split('\n').filter(v => v !== '')
+    // results.forEach(v => {
+    //     let [type, value] = v.split('://')
+    //     if (template.hasOwnProperty(type)) {
+    //         let c = value
+    //         try {
+    //             c = JSON.parse(generate.decode(value))
+    //         } catch (err) {
+    //             [r.message, r.state] = [`JSON解析失败 ${err.message}`, 3]
+    //             return res.json(r)
+    //         }
+
+    //         let a = util.clone(AccountTemplate)
+    //     }
+    // })
+    //  /^(vmess|ssr|ss|socks):\/\/(\w*\=)?\#?(.*?)$/
+
+    return res.json(r)
 })
 
 router.post('/delete', async function (req, res, next) {
@@ -135,8 +154,8 @@ router.post('/delete', async function (req, res, next) {
         return res.json(r)
     }
 
-    let className = req.body.className
-    if (!['Account', 'Link'].includes(className)) {
+    let className = req.body.className.toLocaleLowerCase().replace(/^\S/, s => s.toUpperCase())
+    if (!['Account', 'Link'].includes(req.body.className)) {
         [r.message, r.state] = ['不存在的数据表', 3]
         return res.json(r)
     }

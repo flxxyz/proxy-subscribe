@@ -1,3 +1,5 @@
+const rq = require('request-promise')
+
 const clone = (data) => {
     if (Array.isArray(data)) {
         let arr = []
@@ -37,9 +39,24 @@ const Type = (function (Type) {
     return new Type()
 })()
 
+const request = (opts) => {
+    opts = opts || {}
+    opts.method = (opts.method || 'get').toLocaleUpperCase()
+    opts.url = opts.url
+    opts.headers = opts.headers || {}
+    opts.qs = opts.qs || {}
+
+    if (opts.method === 'POST') {
+        opts.body = opts.body || {}
+    }
+
+    return execute(rq(opts))
+}
+
 module.exports = {
     clone,
     pagination,
     execute,
     Type,
+    request,
 }

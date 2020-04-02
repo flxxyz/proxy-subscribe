@@ -28,19 +28,17 @@
                                 </div>
                                 <div class="dropdown-menu" id="dropdown-menu" role="menu">
                                     <div class="dropdown-content">
-                                        <a href="#" class="dropdown-item">导入订阅地址</a>
-                                        <a href="#" class="dropdown-item">导入ssr链接</a>
-                                        <a href="#" class="dropdown-item">导入ss链接</a>
+                                        <a href="#" class="dropdown-item import-subscribe">导入订阅地址</a>
                                         <hr class="dropdown-divider">
                                         <a href="#" class="dropdown-item">添加vmess链接</a>
                                         <a href="#" class="dropdown-item">添加ssr链接</a>
                                         <a href="#" class="dropdown-item">添加ss链接</a>
                                         <hr class="dropdown-divider">
+                                        <a href="#" class="dropdown-item delete-server account">删除所选服务器</a>
                                     </div>
                                 </div>
                             </div>
-                            <a class="button is-warning generate">生成V2RAY订阅</a>
-                            <a class="button is-warning generate">生成SSR订阅</a>
+                            <a class="button is-warning generate">生成订阅链接</a>
                         </div>
                         <div class="column is-half">
                             <div class="field has-addons has-addons-right">
@@ -195,4 +193,5 @@
 </div>
 <script src="/scripts/base64.min.js"></script>
 <script src="/scripts/generate.js"></script>
+<script src="/scripts/event.js"></script>
 <%- include('layout/footer') -%>

@@ -19,10 +19,11 @@ AV.Cloud.define('hello', function (req) {
 })
 
 AV.Cloud.define('request', async function (req) {
-  let method = (req.params.method || 'get').toLocaleUpperCase()
-  let url = req.params.url
-  let headers = req.params.header || {}
-  let qs = req.params.qs || {}
+  let fields = req.params || {}
+  let method = (fields.method || 'get').toLocaleUpperCase()
+  let url = fields.url
+  let headers = fields.header || {}
+  let qs = fields.qs || {}
 
   if (!url) {
     return '缺少参数url'
@@ -36,9 +37,9 @@ AV.Cloud.define('request', async function (req) {
   }
 
   if (method === 'POST') {
-    options.body = req.params.body || {}
+    options.body = fields.body || {}
   }
-  let [err, res] = await util.execute(rq(options))
+  let [err, res] = await util.request(options)
   if (err) {
     console.error('[request]', err.message)
     return '请求失败'
