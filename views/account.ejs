@@ -13,185 +13,136 @@
     </div>
     <div class="content">
         <section>
-            <div lass="section">
-                <div class="container is-fluid">
-                    <div class="columns">
-                        <div class="column is-half">
-                            <div class="dropdown">
-                                <div class="dropdown-trigger">
-                                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
-                                        <span>选项</span>
-                                        <span class="icon is-small">
-                                            <i class="fas fa-angle-down" aria-hidden="true"></i>
-                                        </span>
-                                    </button>
-                                </div>
-                                <div class="dropdown-menu" id="dropdown-menu" role="menu">
-                                    <div class="dropdown-content">
-                                        <a href="#" class="dropdown-item import-subscribe">导入订阅地址</a>
-                                        <hr class="dropdown-divider">
-                                        <a href="#" class="dropdown-item">添加vmess链接</a>
-                                        <a href="#" class="dropdown-item">添加ssr链接</a>
-                                        <a href="#" class="dropdown-item">添加ss链接</a>
-                                        <hr class="dropdown-divider">
-                                        <a href="#" class="dropdown-item delete-server account">删除所选服务器</a>
-                                    </div>
+            <div class="container is-fluid">
+                <div class="columns">
+                    <div class="column is-half">
+                        <div class="dropdown">
+                            <div class="dropdown-trigger">
+                                <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                                    <span>选项</span>
+                                    <span class="icon is-small">
+                                        <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                    </span>
+                                </button>
+                            </div>
+                            <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                                <div class="dropdown-content">
+                                    <a href="#" class="dropdown-item import-subscribe">导入订阅地址</a>
+                                    <hr class="dropdown-divider">
+                                    <a href="#" class="dropdown-item">添加vmess链接</a>
+                                    <a href="#" class="dropdown-item">添加ssr链接</a>
+                                    <a href="#" class="dropdown-item">添加ss链接</a>
+                                    <hr class="dropdown-divider">
+                                    <a href="#" class="dropdown-item delete-server account">删除所选服务器</a>
                                 </div>
                             </div>
-                            <a class="button is-warning generate">生成订阅链接</a>
                         </div>
-                        <div class="column is-half">
-                            <div class="field has-addons has-addons-right">
-                                <div class="control">
-                                    <input class="input" type="text" placeholder="">
-                                </div>
-                                <div class="control">
-                                    <a class="button is-info">查找</a>
-                                </div>
+                        <a class="button is-warning generate">生成订阅链接</a>
+                    </div>
+                    <div class="column is-half">
+                        <div class="field has-addons has-addons-right">
+                            <div class="control">
+                                <input class="input" type="text" placeholder="">
+                            </div>
+                            <div class="control">
+                                <a class="button is-info">查找</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <table class="table is-hoverable">
-                <thead>
-                    <tr>
-                        <th class="has-text-left choose" width="38px">
-                            <label class="checkbox">
-                                <input class="account" type="checkbox">
-                            </label>
-                        </th>
-                        <th class="has-text-left" width="15%">别名</th>
-                        <th class="has-text-left" width="90px">服务类型</th>
-                        <th class="has-text-left">地址</th>
-                        <th class="has-text-left" width="90px">端口</th>
-                        <th class="has-text-left" width="90px">加密方式</th>
-                        <th class="has-text-left" width="90px">协议</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% for(let account of accounts) {%>
-                    <tr class="account" data-target="modal-ter" aria-haspopup="true">
-                        <td class="choose-item" data-type="account">
-                            <label class="checkbox">
-                                <input type="checkbox" class="source" data-data="<%= account.source %>">
-                            </label>
-                        </td>
-                        <td class="remarks" title="<%= account.remarks %>">
-                            <a href="javascript:;"><%= account.remarks %></a>
-                        </td>
-                        <td class="service-type" title="<%= account.serviceType %>"><%= account.serviceType %>
-                        </td>
-                        <td class="host" title="<%= account.host %>"><%= account.host %></td>
-                        <td class="port" title="<%= account.port %>"><%= account.port %></td>
-                        <td class="encrypt" title="<%= account.encrypt %>"><%= account.encrypt %></td>
-                        <td class="protocol" title="<%= account.protocol %>"><%= account.protocol %></td>
-                    </tr>
-                    <% } %>
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table class="table is-hoverable">
+                    <thead>
+                        <tr>
+                            <th class="has-text-left choose" width="38px">
+                                <label class="checkbox">
+                                    <input class="account" type="checkbox">
+                                </label>
+                            </th>
+                            <th class="has-text-left" width="200px">别名</th>
+                            <th class="has-text-left" width="90px">服务类型</th>
+                            <th class="has-text-left" width="200px">地址</th>
+                            <th class="has-text-left" width="90px">端口</th>
+                            <th class="has-text-left" width="90px">加密方式</th>
+                            <th class="has-text-left" width="90px">协议</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% for(let account of accounts) {%>
+                        <tr class="account" data-target="modal-ter" aria-haspopup="true">
+                            <td class="choose-item" data-type="account">
+                                <label class="checkbox">
+                                    <input type="checkbox" class="checkbox">
+                                    <input type="hidden" class="link-id" value="<%= JSON.parse(account.source).objectId %>">
+                                </label>
+                            </td>
+                            <td class="remarks" title="<%= account.remarks %>">
+                                <a href="javascript:;"><%= account.remarks %></a>
+                            </td>
+                            <td class="service-type" title="<%= account.serviceType %>"><%= account.serviceType %>
+                            </td>
+                            <td class="host" title="<%= account.host %>"><%= account.host %></td>
+                            <td class="port" title="<%= account.port %>"><%= account.port %></td>
+                            <td class="encrypt" title="<%= account.encrypt %>"><%= account.encrypt %></td>
+                            <td class="protocol" title="<%= account.protocol %>"><%= account.protocol %></td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
         </section>
         <section>
-            <table class="table is-hoverable">
-                <thead>
-                    <tr>
-                        <th class="has-text-left choose" width="38px">
-                            <label class="checkbox">
-                                <input class="subscribe" type="checkbox">
-                            </label>
-                        </th>
-                        <th class="has-text-left" width="182px">订阅ID</th>
-                        <th class="has-text-left" width="20%">服务器ID</th>
-                        <th class="has-text-left">包含的URL</th>
-                        <th class="has-text-left" width="10%">禁用</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% for(let link of links) { %>
-                    <tr class="subscribe" data-target="modal-ter" aria-haspopup="true">
-                        <td class="choose-item" data-type="subscribe">
-                            <label class="checkbox">
-                                <input type="checkbox" class="source" data-data="<%= link.source %>">
-                            </label>
-                        </td>
-                        <td class="link-id" title="点击复制">
-                            <a href="javascript:;"><%= link.linkId %></a>
-                        </td>
-                        <td class="ids">
-                            <% for(let id of link.sourceID) {  %>
-                            <span class="id" title="<%= id %>"><%= id %></span>
-                            <% } %>
-                        </td>
-                        <td class="urls">
-                            <% for(let url of link.sourceURL) {  %>
-                            <a class="url" href="javascript:;" title="点击复制"><%= url %></a>
-                            <% } %>
-                        </td>
-                        <td class="is-disable">
-                            <%= link.isDisable %>
-                        </td>
-                    </tr>
-                    <% } %>
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table class="table is-hoverable">
+                    <thead>
+                        <tr>
+                            <th class="has-text-left choose" width="38px">
+                                <label class="checkbox">
+                                    <input class="subscribe" type="checkbox">
+                                </label>
+                            </th>
+                            <th class="has-text-left" width="182px">订阅ID</th>
+                            <th class="has-text-left" width="215px">服务器ID</th>
+                            <th class="has-text-left" width="">包含的URL</th>
+                            <th class="has-text-left" width="90px">禁用/使用</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% for(let link of links) { %>
+                        <tr class="subscribe" data-target="modal-ter" aria-haspopup="true">
+                            <td class="choose-item" data-type="subscribe">
+                                <label class="checkbox">
+                                    <input type="checkbox" class="checkbox">
+                                    <input type="hidden" class="link-id" value="<%= link.linkId %>">
+                                </label>
+                            </td>
+                            <td title="点击复制">
+                                <a href="javascript:;"><%= link.linkId %></a>
+                            </td>
+                            <td class="ids">
+                                <% for(let id of link.sourceID) {  %>
+                                <span class="id" title="<%= id %>"><%= id %></span>
+                                <% } %>
+                            </td>
+                            <td class="urls">
+                                <% for(let url of link.sourceURL) {  %>
+                                <a class="url" href="javascript:;" title="点击复制"><%= url %></a>
+                                <% } %>
+                            </td>
+                            <td class="is-disable">
+                                <label class="switch">
+                                    <input type="checkbox" <%= !link.isDisable ? 'checked' : '' %>>
+                                    <div class="round"></div>
+                                </label>
+                            </td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
         </section>
     </div>
 </div>
-<div id="modal-ter" class="modal">
-    <div class="modal-background"></div>
-    <div class="modal-card">
-        <header class="modal-card-head">
-            <p class="modal-card-title"></p>
-            <button class="delete" aria-label="close"></button>
-        </header>
-        <section class="modal-card-body">
-            <div class="content socks">
-                <h3 class="title-3">二维码</h3>
-                <figure class="image is-square">
-                    <img src="https://bulma.io/images/placeholders/480x480.png">
-                </figure>
-                <h3 class="title-3">配置信息</h3>
-                <pre class="conf-text"></pre>
-            </div>
-            <div class="content ss">
-                <h3 class="title-3">二维码</h3>
-                <figure class="image is-square">
-                    <img src="https://bulma.io/images/placeholders/480x480.png">
-                </figure>
-                <h3 class="title-3">配置信息</h3>
-                <h4 class="title-4">文本</h4>
-                <pre class="conf-text"></pre>
-                <h4 class="title-4">JSON</h4>
-                <pre class="conf-json"></pre>
-            </div>
-            <div class="content ssr">
-                <h3 class="title-3">二维码</h3>
-                <figure class="image is-square">
-                    <img src="https://bulma.io/images/placeholders/480x480.png">
-                </figure>
-                <h3 class="title-3">配置信息</h3>
-                <h4 class="title-4">文本</h4>
-                <pre class="conf-text"></pre>
-                <h4 class="title-4">JSON</h4>
-                <pre class="conf-json"></pre>
-            </div>
-            <div class="content vmess">
-                <h3 class="title-3">二维码</h3>
-                <figure class="image is-square">
-                    <img src="https://bulma.io/images/placeholders/480x480.png">
-                </figure>
-                <h3 class="title-3">配置信息</h3>
-                <h4 class="title-4">文本</h4>
-                <pre class="conf-text"></pre>
-            </div>
-        </section>
-        <footer class="modal-card-foot">
-            <button class="button is-success">明白</button>
-            <button class="button">关闭</button>
-        </footer>
-    </div>
-</div>
-<script src="/scripts/base64.min.js"></script>
-<script src="/scripts/generate.js"></script>
 <script src="/scripts/event.js"></script>
 <%- include('layout/footer') -%>

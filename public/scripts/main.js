@@ -1,28 +1,56 @@
-var getElement = function (selector) {
-    return document.querySelector(selector)
-}
+! function (e) {
+    var proxy,
+        d = document,
+        t = [
+            'Object',
+            'Array',
+            'String',
+            'Number',
+            'Boolean',
+            'Function',
+            'RegExp',
+            'Date',
+            'Undefined',
+            'Null',
+            'Symbol',
+            'Blob',
+            'ArrayBuffer'
+        ]
 
-var getAll = function (selector) {
-    return document.querySelectorAll(selector)
-}
-
-var Type = (function (init) {
-    Type = new Function()
-    Type.prototype = {
-        types: ['Object', 'Array', 'String', 'Number', 'Boolean', 'Function', 'RegExp', 'Date', 'Undefined', 'Null', 'Symbol', 'Blob', 'ArrayBuffer'],
+    proxy = function (selector) {
+        return new proxy.fn.init(selector, this)
     }
-    init = Type.prototype.init = function () {
-        this.types.forEach(type => {
-            this[`is${type}`] = (p) => Object.prototype.toString.call(p).slice(8, -1) === type
-        })
+
+    proxy.getElement = (selector) => document.querySelector(selector)
+    proxy.getElementAll = (selector) => document.querySelectorAll(selector)
+
+    t.forEach(type => {
+        proxy[`is${type}`] = (p) => Object.prototype.toString.call(p).slice(8, -1) === type
+    })
+
+    proxy.urlEncode = function (data, masterKey = '') {
+        if (proxy.isObject(data)) {
+            let p = []
+            for (let [key, value] of Object.entries(data)) {
+                if (masterKey != '') {
+                    key = `${masterKey}[${key}]`
+                }
+                p.push(`${proxy.urlEncode(value, key)}`)
+            }
+            return p.join('&')
+        } else {
+            if (Array.isArray(data)) {
+                return Array.from(data, value => proxy.urlEncode(value, `${masterKey}[]`)).join('&')
+            } else {
+                if (proxy.isString(data) || proxy.isNumber(data) || proxy.isBoolean(data)) {
+                    return `${encodeURIComponent(masterKey)}=${encodeURIComponent(data.toString())}`
+                } else {
+                    return ''
+                }
+            }
+        }
     }
-    init.prototype = Type.prototype
-
-    return new Type.prototype.init()
-})()
-
-var Request = (function (init) {
-    Request = function (opts) {
+    proxy.request = function (opts) {
         opts = opts || {}
         opts.method = (opts.method || 'get').toLocaleUpperCase()
         opts.url = opts.url || ''
@@ -41,44 +69,20 @@ var Request = (function (init) {
             console.log('请求超时', e)
         }
 
-        if (!opts.url || !Type.isString(opts.url)) {
+        if (!opts.url || !proxy.isString(opts.url)) {
             return
         }
 
-        return new Request.prototype.init(opts)
+        return new proxy.request.prototype.init(opts)
     }
 
-    Request.prototype = {
-        param: function (data, masterKey = '') {
-            if (Type.isObject(data)) {
-                let p = []
-                for (let [key, value] of Object.entries(data)) {
-                    if (masterKey != '') {
-                        key = `${masterKey}[${key}]`
-                    }
-                    p.push(`${this.param(value, key)}`)
-                }
-                return p.join('&')
-            } else {
-                if (Array.isArray(data)) {
-                    return Array.from(data, value => this.param(value, `${masterKey}[]`)).join('&')
-                } else {
-                    if (Type.isString(data) || Type.isNumber(data) || Type.isBoolean(data)) {
-                        return `${encodeURIComponent(masterKey)}=${encodeURIComponent(data.toString())}`
-                    } else {
-                        return ''
-                    }
-                }
-            }
-        },
-        blob: function (data) {
+    proxy.request.prototype.init = function (opts) {
+        this.blob = function (data) {
             return new Blob([JSON.stringify(data)], {
                 type: 'text/plain'
             })
         }
-    }
 
-    init = Request.prototype.init = function (opts) {
         var xhr = new XMLHttpRequest()
         xhr.timeout = opts.timeout
         xhr.responseType = opts.dataType
@@ -97,7 +101,7 @@ var Request = (function (init) {
         switch (opts.dataType) {
             case 'blob':
                 console.log('[dataType] blob')
-                opts.data = this.blob(opt.data)
+                opts.data = this.blob(opt.data || {})
                 break;
             case 'arraybuffer':
                 console.log('[dataType] arraybuffer')
@@ -105,7 +109,7 @@ var Request = (function (init) {
             case 'json':
                 console.log('[dataType] json')
                 opts.header['Content-Type'] = 'application/json; charset=UTF-8'
-                opts.data = JSON.stringify(opts.data)
+                opts.data = JSON.stringify(opts.data || {})
                 break;
             default:
                 console.log('[dataType] default')
@@ -133,7 +137,7 @@ var Request = (function (init) {
                         .map(v => v.toLocaleLowerCase())
                         .includes('content-type'))) {
                     opts.header['content-type'] = 'application/x-www-form-urlencoded'
-                    opts.data = this.param(opts.data)
+                    opts.data = proxy.urlEncode(opts.data)
                 }
                 break;
             case 'GET':
@@ -143,7 +147,7 @@ var Request = (function (init) {
                 break;
         }
 
-        opts.queryString = this.param(opts.queryString)
+        opts.queryString = proxy.urlEncode(opts.queryString)
         opts.url += opts.queryString ? `?${opts.queryString}` : ''
 
         xhr.open(opts.method, opts.url, opts.async)
@@ -154,7 +158,20 @@ var Request = (function (init) {
         xhr.send(opts.data)
     }
 
-    init.prototype = Request.prototype
+    proxy.fn = proxy.prototype = {
+        get: (index) => {
+            return this[index]
+        },
+    }
 
-    return Request
-})()
+    proxy.fn.init = function (selector, e) {
+        let nodes = d.querySelectorAll(selector)
+        nodes.forEach((node, index) => {
+            this[index] = node
+        })
+
+        return this
+    }
+
+    e.p = e.proxy = proxy
+}(window)

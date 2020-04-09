@@ -316,13 +316,26 @@ body h1 {
 }
 
 @media(max-width:600px) {
+    .tab {
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .tab ul {
+        margin-top: 10px;
+    }
+
+    .tab ul li {
+        height: 58px;
+    }
+
+    .tab .scroll-bar {
+        overflow-x: scroll;
+    }
+
     .tab ul li label {
         padding: 5px;
         border-radius: 5px
-    }
-
-    .tab ul li label span {
-        display: none
     }
 
     .tab .slider {

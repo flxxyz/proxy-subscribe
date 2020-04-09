@@ -1,7 +1,15 @@
+import * as generate from '../utils/generate'
+import {
+    clone,
+    execute,
+    request,
+    Type,
+    encode,
+    decode,
+    uncompose,
+} from '../utils/util'
 var router = require('express').Router()
 var AV = require('leanengine')
-var util = require('../utils/util')
-var generate = require('../utils/generate')
 var uuid = require('uuid')
 
 const template = {
@@ -60,10 +68,10 @@ router.post('/generate', async function (req, res, next) {
 
     if (ids.length === 0) {
         [r.message, r.state] = ['缺少参数ids', 3]
-        return res.send(r)
+        return res.json(r)
     }
 
-    let [getAccountInError, accounts] = await util.execute(AV.Cloud.run('getAccountIn', {
+    let [getAccountInError, accounts] = await execute(AV.Cloud.run('getAccountIn', {
         ids
     }))
 
@@ -72,17 +80,17 @@ router.post('/generate', async function (req, res, next) {
     }
 
     let urls = accounts.map(v => {
-        let g = generate[`generate${v.get('serviceType').replace(/^\S/, s => s.toUpperCase())}`]
-        return g(util.clone(template[v.get('serviceType')]), v)
+        let func = generate[`serialize${v.get('serviceType').replace(/^\S/, s => s.toUpperCase())}`]
+        return func(clone(template[v.get('serviceType')]), v)
     })
 
     let linkId = uuid()
     global.cache[linkId] = {
         time: new String(Math.round(new Date().getTime() / 1000)),
-        content: generate.encode(urls.join('\n')),
+        content: encode(urls.join('\n')),
     }
 
-    let [addLinkError, isAdded] = await util.execute(AV.Cloud.run('addLink', {
+    let [addLinkError, isAdded] = await execute(AV.Cloud.run('addLink', {
         linkId: linkId,
         content: global.cache[linkId].content,
         sourceID: ids,
@@ -104,49 +112,68 @@ router.post('/generate', async function (req, res, next) {
     return res.json(r)
 })
 
-router.post('/import', async function (req, res, next) {
-    let r = response()
-    // let url = 'https://api.xinjie.eu.org/link/fFQdms0SisvXnowO?sub=3'
-    // let url = 'https://proxy.flxxyz.com/link/62f9444f-0a8b-454b-ae56-6f05ded9318e'
-    // let [err, content] = await util.request({
-    //     url
-    // })
-    
-    // if (err) {
-    //     [r.message, r.state, r.data] = ['获取订阅内容出错', 2, results]
-    // }
+// router.post('/import', async function (req, res, next) {
+//     let r = response()
+//     let url = 'https://api.xinjie.eu.org/link/fFQdms0SisvXnowO?list=shadowrocket'
+//     // let url = 'https://api.xinjie.eu.org/link/fFQdms0SisvXnowO?sub=3'
+//     // let url = 'http://localhost:3000/link/f5b7bd9d-9ec8-466d-bd7d-26e42587e3d7'
+//     let [err, content] = await request({
+//         url
+//     })
 
-    // let results = generate.decode(content).split('\n').filter(v => v !== '')
-    // results.forEach(v => {
-    //     let [type, value] = v.split('://')
-    //     if (template.hasOwnProperty(type)) {
-    //         let c = value
-    //         try {
-    //             c = JSON.parse(generate.decode(value))
-    //         } catch (err) {
-    //             [r.message, r.state] = [`JSON解析失败 ${err.message}`, 3]
-    //             return res.json(r)
-    //         }
+//     if (err) {
+//         [r.message, r.state] = ['获取订阅内容出错', 2]
+//     }
 
-    //         let a = util.clone(AccountTemplate)
-    //     }
-    // })
-    //  /^(vmess|ssr|ss|socks):\/\/(\w*\=)?\#?(.*?)$/
+//     let decodeContent = decode(content).split('\n').filter(v => v !== '')
+//     if (decodeContent.length > 0) {
+//         let serverList = decodeContent
+//         if (decodeContent.length >= 2) {
+//             if (!decodeContent[0].indexOf('STATUS=') && !decodeContent[1].indexOf('REMARKS=')) {
+//                 serverList = decodeContent.slice(2)
+//             }
+//         }
 
-    return res.json(r)
-})
+//         let accounts = []
+//         serverList.forEach(v => {
+//             let [type, data, qs] = uncompose(v)
+//             let func = generate[`deserialize${type.replace(/^\S/, s => s.toUpperCase())}`]
+//             accounts.push(func(type, data, qs))
+//         })
+
+//         let [err, result] = await execute(AV.Cloud.run('addAccountIn', {
+//             accounts
+//         }))
+
+
+//         if (err) {
+//             [r.message, r.state] = ['添加出现错误', 2]
+//             return res.json(r)
+//         } else {
+//             if (!result) {
+//                 [r.message, r.state, r.data] = ['添加失败', 1]
+//             } else {
+//                 [r.message, r.state, r.data] = ['添加成功', 0, {
+//                     result
+//                 }]
+//             }
+//         }
+//     }
+
+//     return res.json(r)
+// })
 
 router.post('/delete', async function (req, res, next) {
     let r = response()
 
     let ids = []
-    if (req.body.ids && util.Type.isString(req.body.ids)) {
+    if (req.body.ids && Type.isString(req.body.ids)) {
         ids = [...new Set(req.body.ids.split(',').filter(v => v !== ''))]
     }
 
     if (ids.length === 0) {
         [r.message, r.state] = ['缺少参数ids', 3]
-        return res.send(r)
+        return res.json(r)
     }
 
     if (!req.body.className) {
@@ -160,13 +187,12 @@ router.post('/delete', async function (req, res, next) {
         return res.json(r)
     }
 
-    let [err, isDeleted] = await util.execute(AV.Cloud.run(`delete${className}`, {
+    let [err, isDeleted] = await execute(AV.Cloud.run(`delete${className}`, {
         ids
     }))
 
     if (err) {
         [r.message, r.state] = ['删除出现错误', 2]
-        return res.json(r)
     } else {
         if (!isDeleted) {
             [r.message, r.state, r.data] = ['删除失败', 1]
@@ -175,6 +201,43 @@ router.post('/delete', async function (req, res, next) {
                 ids: isDeleted
             }]
         }
+    }
+
+    return res.json(r)
+})
+
+router.get('/refresh', async function(req, res, next) {
+    let r = response()
+    return res.json(r)
+})
+
+router.post('/:linkId/update', async function (req, res, next) {
+    let linkId = req.params.linkId
+    let r = response()
+    let isDisabled = req.body.isDisabled || true
+
+    let [err, link] = await execute(AV.Cloud.run('getLink', {
+        linkId
+    }))
+
+    if (err) {
+        [r.message, r.state] = ['查询出错', 2]
+        return res.json(r)
+    }
+
+    if (!link) {
+        [r.message, r.state] = ['没有该条订阅', 1]
+        return res.json(r)
+    }
+
+    link.set('isDisable', parseInt(isDisabled) ? false : true)
+    let [saveError, result] = await execute(link.save())
+    if (saveError) {
+        [r.message, r.state] = ['更新失败' + saveError.message, 1]
+    } else {
+        [r.message, r.state, r.data] = ['更新成功', 0, {
+            linkId: result.id
+        }]
     }
 
     return res.json(r)

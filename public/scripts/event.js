@@ -12,7 +12,7 @@ var copy = function (value) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    var $dropdowns = getAll('.dropdown:not(.is-hoverable)')
+    var $dropdowns = proxy.getElementAll('.dropdown:not(.is-hoverable)')
 
     if ($dropdowns.length > 0) {
         $dropdowns.forEach(function ($el) {
@@ -33,30 +33,16 @@ document.addEventListener('DOMContentLoaded', function () {
         })
     }
 
-    var $accounts = getAll('.account .remarks a')
+    var $accounts = proxy.getElementAll('.account .remarks a')
     if ($accounts.length > 0) {
         $accounts.forEach(($el) => {
             $el.addEventListener('click', function (event) {
                 var root = this.parentElement.parentElement
-                var data = JSON.parse(root.querySelector('.source').dataset.data)
-
-                var generate = new Generate()
-                generate[data.serviceType](data)
-
-                getElement('.modal-card-title').innerHTML = data.remarks
-
-                $modalCardContents.forEach(function ($el) {
-                    $el.classList.remove('is-hidden')
-                    if (!$el.classList.contains(data.serviceType)) {
-                        $el.classList.add('is-hidden')
-                    }
-                })
-                $modal.classList.toggle('is-active')
             })
         })
     }
 
-    var $subscribes = getAll('.subscribe .link-id a')
+    var $subscribes = proxy.getElementAll('.subscribe .link-id a')
     if ($subscribes.length > 0) {
         $subscribes.forEach(($el) => {
             $el.addEventListener('click', function (event) {
@@ -67,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
     }
 
-    var $subscribesSourceURL = getAll('.subscribe .urls .url')
+    var $subscribesSourceURL = proxy.getElementAll('.subscribe .urls .url')
     if ($subscribesSourceURL.length > 0) {
         $subscribesSourceURL.forEach($el => {
             $el.addEventListener('click', function (event) {
@@ -76,14 +62,14 @@ document.addEventListener('DOMContentLoaded', function () {
         })
     }
 
-    var $chooses = getAll('.choose .checkbox input')
-    var $chooseItems = getAll('.choose-item')
+    var $chooses = proxy.getElementAll('.choose .checkbox input')
+    var $chooseItems = proxy.getElementAll('.choose-item')
     if ($chooses.length > 0) {
         $chooses.forEach(($el) => {
             $el.addEventListener('click', function (event) {
                 $chooseItems.forEach($item => {
                     if ($item.dataset.type === $el.classList[0]) {
-                        var checkbox = $item.querySelector('.source')
+                        var checkbox = $item.querySelector('input.checkbox')
                         checkbox.checked = !checkbox.checked
                     }
                 })
@@ -92,22 +78,21 @@ document.addEventListener('DOMContentLoaded', function () {
         })
     }
 
-    var $generate = getAll('.generate')
+    var $generate = proxy.getElementAll('.generate')
     if ($generate.length > 0) {
         $generate.forEach($el => {
             $el.addEventListener('click', function (event) {
                 var ids = []
 
                 $chooseItems.forEach($item => {
-                    var checkbox = $item.querySelector('.source')
+                    var checkbox = $item.querySelector('input.checkbox')
                     if (checkbox.checked) {
-                        var data = JSON.parse(checkbox.dataset.data)
-                        ids.push(data.objectId)
+                        ids.push($item.querySelector('.link-id').value)
                     }
                 })
 
                 if (ids.length > 0) {
-                    Request({
+                    proxy.request({
                         method: 'post',
                         url: '/api/generate',
                         dataType: 'json',
@@ -123,23 +108,21 @@ document.addEventListener('DOMContentLoaded', function () {
         })
     }
 
-    var $deleteServer = getAll('.delete-server')
+    var $deleteServer = proxy.getElementAll('.delete-server')
     if ($deleteServer.length > 0) {
         $deleteServer.forEach(function ($el) {
             $el.addEventListener('click', function (event) {
-                console.log(window.a = this.classList)
                 var ids = []
 
                 $chooseItems.forEach($item => {
-                    var checkbox = $item.querySelector('.source')
+                    var checkbox = $item.querySelector('input.checkbox')
                     if (checkbox.checked) {
-                        var data = JSON.parse(checkbox.dataset.data)
-                        ids.push(data.objectId)
+                        ids.push($item.querySelector('.link-id').value)
                     }
                 })
 
                 if (ids.length > 0) {
-                    Request({
+                    proxy.request({
                         method: 'post',
                         url: '/api/delete',
                         dataType: 'json',
@@ -156,39 +139,91 @@ document.addEventListener('DOMContentLoaded', function () {
         })
     }
 
-    var $importSubscribe = getAll('.import-subscribe')
+    var $importSubscribe = proxy.getElementAll('.import-subscribe')
     if ($importSubscribe.length > 0) {
-
-    }
-
-    var $modal = getElement('.modal')
-    var $modalButtons = getAll('.modal-button')
-    var $modalCloses = getAll('.modal-background, .modal-close, .modal-card-head .delete, .modal-card-foot .button')
-    var $modalCardContents = getAll('.modal-card-body .content')
-
-    if ($modalButtons.length > 0) {
-        $modalButtons.forEach(function ($el) {
+        $importSubscribe.forEach(function ($el) {
             $el.addEventListener('click', function (event) {
-                var target = $el.dataset.target
-                openModal(target)
+                proxy.request({
+                    method: 'post',
+                    url: '/api/import',
+                    dataType: 'json',
+                    data: {
+                        url: '',
+                    },
+                    success: function (res) {
+                        console.log('res:', res.data.content)
+                        window.content = res.data.content
+                    }
+                })
             })
         })
     }
 
-    if ($modalCloses.length > 0) {
-        $modalCloses.forEach(function ($el) {
-            $el.addEventListener('click', closeModal)
+    var $isDisableSwitch = proxy.getElementAll('.is-disable .switch .round')
+    if ($isDisableSwitch.length > 0) {
+        $isDisableSwitch.forEach(function ($el) {
+            $el.addEventListener('click', function (event) {
+                var root = this.parentElement.parentElement.parentElement
+                var linkId = root.querySelector('.link-id').value
+                var isDisabled = !this.previousElementSibling.checked ? 1 : 0
+                proxy.request({
+                    method: 'post',
+                    url: `/api/${linkId}/update`,
+                    data: {
+                        isDisabled
+                    },
+                    success: res => {
+                        res = JSON.parse(res)
+                        let content = !isDisabled ? '已禁用' : '使用中'
+
+                        if (res.state != 0) {
+                            console.log('没修改成功，还原', !this.previousElementSibling.checked)
+                            this.previousElementSibling.checked = !this.previousElementSibling.checked
+                            content = '没修改成功，还原'
+                        }
+
+                        // layer.open({
+                        //     type: 1,
+                        //     area: ['500px', '300px'],
+                        //     title: '你好，layer。',
+                        //     shade: 0,
+                        //     maxmin: true,
+                        //     content: content
+                        // })
+                        openLayer({
+                            shade: 0,
+                            maxmin: true,
+                            content: content,
+                        })
+                    }
+                })
+
+            })
         })
     }
 
-    function openModal(target) {
-        var $target = document.getElementById(target);
-        document.documentElement.classList.add('is-clipped')
-        $target.classList.add('is-active')
-    }
+    function openLayer(opts) {
+        opts = opts || {}
+        opts.type = opts.type || 1
+        opts.title = opts.title || '信息'
+        opts.offset = opts.offset || '200px'
+        opts.width = opts.width || 400
+        opts.heigth = opts.heigth || 180
+        opts.shade = opts.shade || 0.3
+        opts.shadeClose = opts.shadeClose || false
+        opts.maxmin = opts.maxmin || false
+        opts.content = opts.content || ''
 
-    function closeModal() {
-        document.documentElement.classList.remove('is-clipped')
-        $modal.classList.remove('is-active')
+        layer.open({
+            type: opts.type,
+            // skin: 'layui-layer-rim',
+            title: opts.title,
+            offset: opts.offset,
+            area: [`${opts.width}px`, `${opts.heigth}px`],
+            shade: opts.shade,
+            shadeClose: opts.shadeClose,
+            maxmin: opts.maxmin,
+            content: opts.content,
+        })
     }
 })
