@@ -1,6 +1,8 @@
-var Base64 = require('js-base64').Base64
+import {
+    compose
+} from './util'
 
-const generateVmess = (template, value) => {
+const serializeVmess = (template, value) => {
     template.ps = value.get('remarks')
     template.add = value.get('host')
     template.port = value.get('port')
@@ -15,7 +17,7 @@ const generateVmess = (template, value) => {
     return compose(value.get('serviceType'), JSON.stringify(template))
 }
 
-const generateSsr = (template, value) => {
+const serializeSsr = (template, value) => {
     template.remarks = value.get('remarks')
     template.host = value.get('host')
     template.port = value.get('port')
@@ -38,38 +40,85 @@ const generateSsr = (template, value) => {
     return compose(value.get('serviceType'), data)
 }
 
-const generateSs = (template, value) => {
+const serializeSs = (template, value) => {
     return compose(value.get('serviceType'), JSON.stringify(template))
 }
 
-const generateSocks = (template, value) => {
-    template.username = value.get('socksSetting').username
-    template.password = value.get('socksSetting').password
-    template.host = value.get('host')
-    template.port = value.get('port')
-    let data = `${template.username}:${template.password}@${template.host}:${template.port}`
-    let remarks = value.get('remarks') ? `#${encodeURIComponent(value.get('remarks'))}` : ''
-    return compose(value.get('serviceType'), data, remarks)
+const deserializeVmess = (type, data, qs) => {
+    let isV2ray = true
+    try {
+        data = JSON.parse(data)
+    } catch (err) {
+        isV2ray = false
+    }
+
+    let template = {
+        host: '',
+        port: '',
+        remarks: '',
+        serviceType: type,
+        vmessSetting: {}
+    }
+
+    if (isV2ray) {
+        template.remarks = data.ps
+        template.host = data.add
+        template.port = data.port
+        template.vmessSetting.userId = data.id
+        template.vmessSetting.alterId = data.aid
+        template.vmessSetting.protocol = data.net
+        template.vmessSetting.type = data.type
+        template.vmessSetting.host = data.host
+        template.vmessSetting.path = data.path
+        template.vmessSetting.tls = data.tls
+    } else {
+        let newData = []
+        data = data.split('@')
+        data.forEach(v => newData.push.apply(newData, v.split(':')))
+        template.host = newData[2]
+        template.port = newData[3]
+        template.vmessSetting.encrypt = newData[0] //加密方式
+        template.vmessSetting.userId = newData[1] //用户id，没有额外id
+
+        template.remarks = qs.remarks
+        template.vmessSetting.path = qs.path
+        template.vmessSetting.host = qs.obfsParam
+        template.vmessSetting.type = ['http', 'h2', 'websocket', 'mkcp'].includes(qs.obfs) ? qs.obfs : 'none'
+        qs.tls = qs.tls || ''
+        if (qs.tls) {
+            template.vmessSetting.tls = qs.tls
+        }
+        qs.mux = qs.mux || ''
+        if (qs.mux) {
+            template.vmessSetting.mux = qs.mux
+        }
+    }
+
+    return template
 }
 
-const compose = (type, data, salt = '') => {
-    return `${type}://${encode(data)}${salt}`
+const deserializeSsr = (value) => {
+    // let [base, params] = decode(value).split('/?')
+    // base = base.split(':')
+    // template.host = base[0]
+    // template.port = base[1]
+    // template.protocol = base[2]
+    // template.encrypt = base[3]
+    // template.obfs = base[4]
+    // template.password = decode(base[5])
+
+    return ''
 }
 
-const encode = (data) => {
-    return Base64.encode(data)
-}
-
-const decode = (data) => {
-    return Base64.decode(data)
+const deserializeSs = (value) => {
+    return ''
 }
 
 module.exports = {
-    generateVmess,
-    generateSsr,
-    generateSs,
-    generateSocks,
-    compose,
-    encode,
-    decode,
+    deserializeVmess,
+    deserializeSsr,
+    deserializeSs,
+    serializeVmess,
+    serializeSsr,
+    serializeSs,
 }

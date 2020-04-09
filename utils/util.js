@@ -1,4 +1,7 @@
 const rq = require('request-promise')
+const Base64 = require('js-base64').Base64
+
+import * as qs from './url'
 
 const clone = (data) => {
     if (Array.isArray(data)) {
@@ -53,10 +56,32 @@ const request = (opts) => {
     return execute(rq(opts))
 }
 
-module.exports = {
+const encode = (data) => {
+    return Base64.encode(data)
+}
+
+const decode = (data) => {
+    return Base64.decode(data)
+}
+
+const compose = (type, data, qs = '') => {
+    return `${type}://${encode(data)}${qs}`
+}
+
+const uncompose = (url) => {
+    let [type, value] = url.split('://')
+    let [content, qs] = value.split('?')
+    return [type, decode(content), qs.decode(qs || '')]
+}
+
+export {
     clone,
     pagination,
     execute,
     Type,
     request,
+    compose,
+    uncompose,
+    encode,
+    decode,
 }
