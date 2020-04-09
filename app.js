@@ -47,9 +47,7 @@ app.use(require('./middleware/auth'))
 global.cache = {}
 
 app.get('/', function (req, res) {
-  res.render('index', {
-    currentTime: new Date()
-  });
+  return res.render('index')
 })
 app.use('/login', require('./routes/login'))
 app.use('/account', require('./routes/account'))

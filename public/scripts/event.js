@@ -206,8 +206,8 @@ document.addEventListener('DOMContentLoaded', function () {
         opts = opts || {}
         opts.type = opts.type || 1
         opts.title = opts.title || '信息'
-        opts.offset = opts.offset || '200px'
-        opts.width = opts.width || 400
+        opts.offset = opts.offset || '120px'
+        opts.width = opts.width || 308
         opts.heigth = opts.heigth || 180
         opts.shade = opts.shade || 0.3
         opts.shadeClose = opts.shadeClose || false
