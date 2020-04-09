@@ -1,55 +1,54 @@
 const AV = require('leanengine')
 const util = require('../utils/util')
 
+let tableName = 'Link'
+if (process.env.LEANCLOUD_APP_ENV) {
+    tableName = 'LinkDev'
+}
+
 AV.Cloud.define('getLink', async function (req) {
-    let query = new AV.Query('Link')
+    let query = new AV.Query(tableName)
     let fields = req.params || {}
     Object.keys(fields).forEach(key => {
-        if (!['asc', 'desc'].includes(key)) {
+        if (!['sort'].includes(key)) {
             query.equalTo(key, fields[key])
         }
     })
 
-    let asc = fields.asc || 'createdAt'
-    let desc = fields.desc || 'createdAt'
-    if (asc) {
-        query.ascending(asc)
-    }
-    if (desc) {
-        query.descending(desc)
+    let sort = fields.sort || 1
+    if (sort) {
+        query.ascending('createdAt')
+    } else {
+        query.descending('createdAt')
     }
 
     return await query.first()
 })
 
 AV.Cloud.define('getLinkIn', async function (req) {
-    let query = new AV.Query('Link')
+    let query = new AV.Query(tableName)
 
     let fields = req.params || {}
     let ids = fields.ids || []
-    let asc = fields.asc || 'createdAt'
-    let desc = fields.desc || 'createdAt'
-    if (asc) {
-        query.ascending(asc)
-    }
-    if (desc) {
-        query.descending(desc)
+    let sort = fields.sort || 1
+    if (sort) {
+        query.ascending('createdAt')
+    } else {
+        query.descending('createdAt')
     }
 
     return await query.containedIn('objectId', ids).find()
 })
 
 AV.Cloud.define('getLinkAll', async function (req) {
-    let query = new AV.Query('Link')
+    let query = new AV.Query(tableName)
 
     let fields = req.params || {}
-    let asc = fields.asc || 'createdAt'
-    let desc = fields.desc || 'createdAt'
-    if (asc) {
-        query.ascending(asc)
-    }
-    if (desc) {
-        query.descending(desc)
+    let sort = fields.sort || 1
+    if (sort) {
+        query.ascending('createdAt')
+    } else {
+        query.descending('createdAt')
     }
 
     return await query.find()
@@ -61,7 +60,7 @@ AV.Cloud.define('addLink', async function (req) {
     let sourceID = req.params.sourceID
     let sourceURL = req.params.sourceURL
 
-    let link = new AV.Object('Link')
+    let link = new AV.Object(tableName)
     link.set('linkId', linkId)
     link.set('content', content)
     link.set('sourceID', sourceID)
