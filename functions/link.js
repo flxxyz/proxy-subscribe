@@ -2,7 +2,7 @@ const AV = require('leanengine')
 const util = require('../utils/util')
 
 let tableName = 'Link'
-if (process.env.LEANCLOUD_APP_ENV) {
+if (process.env.LEANCLOUD_APP_ENV === 'development') {
     tableName = 'LinkDev'
 }
 
