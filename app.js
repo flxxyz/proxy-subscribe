@@ -17,7 +17,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 // 设置默认超时时间
-app.use(timeout('15s'));
+app.use(timeout('30s'));
 
 // 加载云引擎中间件
 app.use(AV.express());
@@ -25,7 +25,7 @@ app.use(AV.express());
 app.enable('trust proxy');
 if (app.get('env') === 'production') {
   // 需要重定向到 HTTPS 可去除下一行的注释。
-  app.use(AV.Cloud.HttpsRedirect());
+  // app.use(AV.Cloud.HttpsRedirect());
 }
 
 app.use(express.static('public'));
