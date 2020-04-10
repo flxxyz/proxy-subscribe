@@ -54,6 +54,33 @@ AV.Cloud.define('getLinkAll', async function (req) {
     return await query.find()
 })
 
+AV.Cloud.define('getLinkContent', async function (req) {
+    let fields = req.params || {}
+    let linkId = fields.linkId || ''
+
+    if (!linkId) {
+        return ''
+    }
+
+    let [err, link] = await util.execute(AV.Cloud.run('getLink', {
+        linkId
+    }))
+
+    if (err) {
+        return ''
+    }
+
+    if (!link) {
+        return ''
+    }
+
+    if (link.get('isDisable')) {
+        return ''
+    }
+
+    return link.get('content')
+})
+
 AV.Cloud.define('addLink', async function (req) {
     let linkId = req.params.linkId
     let content = req.params.content
