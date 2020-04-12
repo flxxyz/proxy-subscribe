@@ -74,6 +74,14 @@ const uncompose = (url) => {
     return [type, decode(content), qs.decode(qs || '')]
 }
 
+const response = (message = 'success', state = 0, data) => {
+    return {
+        message: message,
+        state: state,
+        data: data || {},
+    }
+}
+
 export {
     clone,
     pagination,
@@ -84,4 +92,5 @@ export {
     uncompose,
     encode,
     decode,
+    response,
 }

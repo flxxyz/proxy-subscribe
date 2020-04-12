@@ -12,7 +12,7 @@ router.get('/', async function (req, res, next) {
     accounts.forEach((v, i) => {
         let serviceType = v.get('serviceType')
         accounts[i] = {
-            objectId: v.get('objectId'),
+            id: v.get('objectId'),
             source: JSON.stringify(v.toFullJSON()),
             remarks: v.get('remarks'),
             serviceType: serviceType,
@@ -20,6 +20,21 @@ router.get('/', async function (req, res, next) {
             port: v.get('port'),
             encrypt: v.get(`${serviceType}Setting`).encrypt,
             protocol: v.get(`${serviceType}Setting`).protocol,
+        }
+    })
+
+    let [getSubscribeAllError, subscribes] = await util.execute(AV.Cloud.run('getSubscribeAll'))
+
+    if (getSubscribeAllError) {
+        subscribes = []
+    }
+
+    subscribes.forEach((v, i) => {
+        subscribes[i] = {
+            id: v.get('objectId'),
+            source: JSON.stringify(v.toFullJSON()),
+            remarks: v.get('remarks'),
+            url: v.get('url'),
         }
     })
 
@@ -31,7 +46,7 @@ router.get('/', async function (req, res, next) {
 
     links.forEach((v, i) => {
         links[i] = {
-            objectId: v.get('objectId'),
+            id: v.get('objectId'),
             source: JSON.stringify(v.toFullJSON()),
             linkId: v.get('linkId'),
             sourceID: v.get('sourceID'),
@@ -42,6 +57,7 @@ router.get('/', async function (req, res, next) {
 
     res.render('account', {
         accounts: accounts,
+        subscribes: subscribes,
         links: links,
     })
 })

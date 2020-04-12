@@ -2,11 +2,13 @@
 <link rel="stylesheet" href="/stylesheets/tab.css">
 
 <div class="tab">
-    <input type="radio" id="tab-link" name="tab-control" checked>
-    <input type="radio" id="tab-share" name="tab-control">
+    <input type="radio" id="tab-account" name="tab-control" checked>
+    <input type="radio" id="tab-subscribe" name="tab-control">
+    <input type="radio" id="tab-link" name="tab-control">
     <ul>
-        <li><label for="tab-link" role="button"><span>服务器管理</span></label></li>
-        <li><label for="tab-share" role="button"><span>订阅管理</span></label></li>
+        <li><label for="tab-account" role="button"><span>服务器管理</span></label></li>
+        <li><label for="tab-subscribe" role="button"><span>订阅管理</span></label></li>
+        <li><label for="tab-link" role="button"><span>链接管理</span></label></li>
     </ul>
     <div class="slider">
         <div class="indicator"></div>
@@ -27,13 +29,11 @@
                             </div>
                             <div class="dropdown-menu" id="dropdown-menu" role="menu">
                                 <div class="dropdown-content">
-                                    <a href="#" class="dropdown-item import-subscribe">导入订阅地址</a>
-                                    <hr class="dropdown-divider">
                                     <a href="#" class="dropdown-item">添加vmess链接</a>
                                     <a href="#" class="dropdown-item">添加ssr链接</a>
                                     <a href="#" class="dropdown-item">添加ss链接</a>
                                     <hr class="dropdown-divider">
-                                    <a href="#" class="dropdown-item delete-server account">删除所选服务器</a>
+                                    <a href="#" class="dropdown-item delete-selector" data-type="account">删除所选服务器</a>
                                 </div>
                             </div>
                         </div>
@@ -55,9 +55,9 @@
                 <table class="table is-hoverable">
                     <thead>
                         <tr>
-                            <th class="has-text-left choose" width="38px">
-                                <label class="checkbox">
-                                    <input class="account" type="checkbox">
+                            <th class="has-text-left" width="38px">
+                                <label>
+                                    <input class="choose" type="checkbox" data-type="account">
                                 </label>
                             </th>
                             <th class="has-text-left" width="240px">别名</th>
@@ -70,11 +70,11 @@
                     </thead>
                     <tbody>
                         <% for(let account of accounts) {%>
-                        <tr class="account" data-target="modal-ter" aria-haspopup="true">
-                            <td class="choose-item" data-type="account">
-                                <label class="checkbox">
+                        <tr class="account">
+                            <td>
+                                <label>
                                     <input type="checkbox" class="checkbox">
-                                    <input type="hidden" class="link-id" value="<%= JSON.parse(account.source).objectId %>">
+                                    <input type="hidden" class="account-id" value="<%= account.id %>">
                                 </label>
                             </td>
                             <td class="remarks" title="<%= account.remarks %>">
@@ -93,13 +93,87 @@
             </div>
         </section>
         <section>
+            <div class="column is-half">
+                <div class="dropdown">
+                    <div class="dropdown-trigger">
+                        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                            <span>选项</span>
+                            <span class="icon is-small">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                        <div class="dropdown-content">
+                            <a href="#" class="dropdown-item delete-selector" data-type="subscribe">删除所选订阅</a>
+                        </div>
+                    </div>
+                </div>
+                <a class="button is-warning import-subscribe">添加订阅</a>
+                <a class="button is-primary update-subscribe">更新订阅</a>
+            </div>
             <div class="table-container">
                 <table class="table is-hoverable">
                     <thead>
                         <tr>
-                            <th class="has-text-left choose" width="38px">
-                                <label class="checkbox">
-                                    <input class="subscribe" type="checkbox">
+                            <th class="has-text-left" width="38px">
+                                <label>
+                                    <input class="choose" type="checkbox" data-type="subscribe">
+                                </label>
+                            </th>
+                            <th class="has-text-left">订阅服务名</th>
+                            <th class="has-text-left">URL</th>
+                            <th class="has-text-left">禁用/使用</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% for(let subscribe of subscribes) { %>
+                        <tr class="subscribe">
+                            <td>
+                                <label>
+                                    <input type="checkbox" class="checkbox">
+                                    <input type="hidden" class="subscribe-id" value="<%= subscribe.id %>">
+                                </label>
+                            </td>
+                            <td><%= subscribe.remarks %></td>
+                            <td><%= subscribe.url %></td>
+                            <td class="is-disable">
+                                <label class="switch">
+                                    <input type="checkbox" <%= !subscribe.isDisable ? 'checked' : '' %>>
+                                    <div class="round"></div>
+                                </label>
+                            </td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section>
+            <div class="column is-half">
+                <div class="dropdown">
+                    <div class="dropdown-trigger">
+                        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                            <span>选项</span>
+                            <span class="icon is-small">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                        <div class="dropdown-content">
+                            <a href="#" class="dropdown-item delete-selector" data-type="link">删除所选链接</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="table is-hoverable">
+                    <thead>
+                        <tr>
+                            <th class="has-text-left" width="38px">
+                                <label>
+                                    <input class="choose" type="checkbox" data-type="link">
                                 </label>
                             </th>
                             <th class="has-text-left" width="380rem">订阅ID</th>
@@ -110,9 +184,9 @@
                     </thead>
                     <tbody>
                         <% for(let link of links) { %>
-                        <tr class="subscribe" data-target="modal-ter" aria-haspopup="true">
-                            <td class="choose-item" data-type="subscribe">
-                                <label class="checkbox">
+                        <tr class="link">
+                            <td>
+                                <label>
                                     <input type="checkbox" class="checkbox">
                                     <input type="hidden" class="link-id" value="<%= link.linkId %>">
                                 </label>

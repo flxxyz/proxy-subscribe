@@ -66,8 +66,7 @@ AV.Cloud.define('deleteAccount', async function (req) {
         return false
     } else {
         await AV.Object.destroyAll(accounts)
-        ids = accounts.map(v => v.get('objectId'))
-        return ids
+        return accounts.map(v => v.get('objectId'))
     }
 })
 
@@ -78,15 +77,15 @@ AV.Cloud.define('addAccountIn', async function (req) {
     let objects = []
     accounts.forEach(account => {
         if (account !== '') {
-            let link = new AV.Object(tableName)
-            link.set('host', account.host)
-            link.set('port', account.port)
-            link.set('remarks', decodeURIComponent(account.remarks))
-            link.set('serviceType', account.serviceType)
-            link.set('ssrSetting', account.ssrSetting || {})
-            link.set('vmessSetting', account.vmessSetting || {})
-            link.set('socksSetting', account.socksSetting || {})
-            objects.push(link)
+            let a = new AV.Object(tableName)
+            a.set('host', account.host)
+            a.set('port', account.port)
+            a.set('remarks', decodeURIComponent(account.remarks))
+            a.set('serviceType', account.serviceType)
+            a.set('ssrSetting', account.ssrSetting || {})
+            a.set('vmessSetting', account.vmessSetting || {})
+            a.set('socksSetting', account.socksSetting || {})
+            objects.push(a)
         }
     })
 

@@ -127,7 +127,7 @@ body h1 {
 
 .tab .slider {
     position: relative;
-    width: 50%;  /* 下面小条条 */
+    width: 33.333%;  /* 下面小条条 */
     -webkit-transition: all .33s cubic-bezier(.38, .8, .32, 1.07);
     transition: all .33s cubic-bezier(.38, .8, .32, 1.07)
 }

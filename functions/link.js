@@ -114,7 +114,6 @@ AV.Cloud.define('deleteLink', async function (req) {
         return false
     } else {
         await AV.Object.destroyAll(links)
-        ids = links.map(v => v.get('objectId'))
-        return ids
+        return links.map(v => v.get('objectId'))
     }
 })

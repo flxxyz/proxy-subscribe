@@ -7,6 +7,7 @@ import {
     encode,
     decode,
     uncompose,
+    response,
 } from '../utils/util'
 var router = require('express').Router()
 var AV = require('leanengine')
@@ -48,14 +49,6 @@ var AccountTemplate = {
     socksSetting: {},
     ssrSetting: {},
     vmessSetting: {},
-}
-
-const response = (message = 'success', state = 0, data) => {
-    return {
-        message: message,
-        state: state,
-        data: data || {},
-    }
 }
 
 router.post('/generate', async function (req, res, next) {
@@ -176,7 +169,7 @@ router.post('/delete', async function (req, res, next) {
     }
 
     let className = req.body.className.toLocaleLowerCase().replace(/^\S/, s => s.toUpperCase())
-    if (!['Account', 'Link'].includes(req.body.className)) {
+    if (!['Account', 'Link', 'Subscribe'].includes(className)) {
         [r.message, r.state] = ['不存在的数据表', 3]
         return res.json(r)
     }
@@ -189,7 +182,7 @@ router.post('/delete', async function (req, res, next) {
         [r.message, r.state] = ['删除出现错误', 2]
     } else {
         if (!isDeleted) {
-            [r.message, r.state, r.data] = ['删除失败', 1]
+            [r.message, r.state] = ['删除失败', 1]
         } else {
             [r.message, r.state, r.data] = ['删除成功', 0, {
                 ids: isDeleted
@@ -234,6 +227,48 @@ router.post('/:linkId/update', async function (req, res, next) {
         }]
     }
 
+    return res.json(r)
+})
+
+router.post('/subscribe/import', async function (req, res, next) {
+    let r = response()
+    let remarks = req.body.remarks || ''
+    let url = req.body.url || ''
+    let userId = req.currentUser.id
+
+    if (!remarks) {
+        [r.message, r.state] = ['缺少参数remarks', 3]
+        return res.json(r)
+    }
+    
+    if (!url) {
+        [r.message, r.state] = ['缺少参数url', 3]
+        return res.json(r)
+    }
+
+    let [err, result] = await execute(AV.Cloud.run('addSubscribe', {
+        remarks,
+        url,
+        userId,
+    }))
+
+    if (err) {
+        [r.message, r.state] = [`添加出现错误${err.message}`, 2]
+    } else {
+        if (!res) {
+            [r.message, r.state] = ['添加失败', 1]
+        } else {
+            [r.message, r.state, r.data] = ['添加成功', 0, {
+                id: result.get('objectId')
+            }]
+        }
+    }
+
+    return res.json(r)
+})
+
+router.post('/subscribe/update', async function (req, res, next) {
+    let r = response()
     return res.json(r)
 })
 

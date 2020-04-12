@@ -62,18 +62,13 @@ document.addEventListener('DOMContentLoaded', function () {
         })
     }
 
-    var $chooses = proxy.getElementAll('.choose .checkbox input')
-    var $chooseItems = proxy.getElementAll('.choose-item')
+    var $chooses = proxy.getElementAll('.choose')
     if ($chooses.length > 0) {
         $chooses.forEach(($el) => {
             $el.addEventListener('click', function (event) {
-                $chooseItems.forEach($item => {
-                    if ($item.dataset.type === $el.classList[0]) {
-                        var checkbox = $item.querySelector('input.checkbox')
-                        checkbox.checked = !checkbox.checked
-                    }
+                proxy.getElementAll(`.${this.dataset.type} .checkbox`).forEach(checkbox => {
+                    checkbox.checked = !checkbox.checked
                 })
-
             })
         })
     }
@@ -84,10 +79,10 @@ document.addEventListener('DOMContentLoaded', function () {
             $el.addEventListener('click', function (event) {
                 var ids = []
 
-                $chooseItems.forEach($item => {
+                proxy.getElementAll(`.account`).forEach($item => {
                     var checkbox = $item.querySelector('input.checkbox')
                     if (checkbox.checked) {
-                        ids.push($item.querySelector('.link-id').value)
+                        ids.push($item.querySelector('.account-id').value)
                     }
                 })
 
@@ -95,7 +90,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     proxy.request({
                         method: 'post',
                         url: '/api/generate',
-                        // dataType: 'json',
                         data: {
                             ids: ids.join(','),
                         },
@@ -108,16 +102,17 @@ document.addEventListener('DOMContentLoaded', function () {
         })
     }
 
-    var $deleteServer = proxy.getElementAll('.delete-server')
-    if ($deleteServer.length > 0) {
-        $deleteServer.forEach(function ($el) {
+    var $deleteSelector = proxy.getElementAll('.delete-selector')
+    if ($deleteSelector.length > 0) {
+        $deleteSelector.forEach(function ($el) {
             $el.addEventListener('click', function (event) {
                 var ids = []
 
-                $chooseItems.forEach($item => {
+                var type = $el.dataset.type
+                proxy.getElementAll(`.${type}`).forEach($item => {
                     var checkbox = $item.querySelector('input.checkbox')
                     if (checkbox.checked) {
-                        ids.push($item.querySelector('.link-id').value)
+                        ids.push($item.querySelector(`.${type}-id`).value)
                     }
                 })
 
@@ -125,10 +120,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     proxy.request({
                         method: 'post',
                         url: '/api/delete',
-                        // dataType: 'json',
                         data: {
                             ids: ids.join(','),
-                            className: this.classList.item(2),
+                            className: type,
                         },
                         success: function (res) {
                             console.log('res:', res)
@@ -143,17 +137,29 @@ document.addEventListener('DOMContentLoaded', function () {
     if ($importSubscribe.length > 0) {
         $importSubscribe.forEach(function ($el) {
             $el.addEventListener('click', function (event) {
-                proxy.request({
-                    method: 'post',
-                    url: '/api/import',
-                    dataType: 'json',
-                    data: {
-                        url: '',
-                    },
-                    success: function (res) {
-                        console.log('res:', res.data.content)
-                        window.content = res.data.content
-                    }
+                layer.prompt({
+                    title: '填写订阅地址',
+                    formType: 2
+                }, function (url, index) {
+                    layer.close(index)
+                    layer.prompt({
+                        title: '填写备注，并确认',
+                    }, function (remarks, index) {
+                        layer.close(index)
+                        layer.msg('订阅地址：' + url + '<br>备注：' + remarks)
+                        proxy.request({
+                            method: 'post',
+                            url: '/api/subscribe/import',
+                            data: {
+                                remarks,
+                                url,
+                            },
+                            success: function (res) {
+                                layer.msg('添加成功')
+                                console.log('res:', res)
+                            }
+                        })
+                    })
                 })
             })
         })
