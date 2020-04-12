@@ -84,15 +84,9 @@ router.post('/generate', async function (req, res, next) {
         return func(clone(template[v.get('serviceType')]), v)
     })
 
-    let linkId = uuid()
-    global.cache[linkId] = {
-        time: new String(Math.round(new Date().getTime() / 1000)),
-        content: encode(urls.join('\n')),
-    }
-
     let [addLinkError, isAdded] = await execute(AV.Cloud.run('addLink', {
-        linkId: linkId,
-        content: global.cache[linkId].content,
+        linkId: uuid(),
+        content: encode(urls.join('\n')),
         sourceID: ids,
         sourceURL: urls,
     }))
