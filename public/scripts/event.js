@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     proxy.request({
                         method: 'post',
                         url: '/api/generate',
-                        dataType: 'json',
+                        // dataType: 'json',
                         data: {
                             ids: ids.join(','),
                         },
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     proxy.request({
                         method: 'post',
                         url: '/api/delete',
-                        dataType: 'json',
+                        // dataType: 'json',
                         data: {
                             ids: ids.join(','),
                             className: this.classList.item(2),
