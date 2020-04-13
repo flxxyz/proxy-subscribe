@@ -21,6 +21,7 @@
         return new proxy.fn.init(selector, this)
     }
 
+    /* 一些静态方法start */
     proxy.getElement = (selector) => document.querySelector(selector)
     proxy.getElementAll = (selector) => document.querySelectorAll(selector)
 
@@ -75,7 +76,6 @@
 
         return new proxy.request.prototype.init(opts)
     }
-
     proxy.request.prototype.init = function (opts) {
         this.blob = function (data) {
             return new Blob([JSON.stringify(data)], {
@@ -157,6 +157,7 @@
         console.log('[send]', opts.url)
         xhr.send(opts.data)
     }
+    /* 一些静态方法end */
 
     proxy.fn = proxy.prototype = {
         get: (index) => {

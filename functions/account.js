@@ -29,6 +29,12 @@ AV.Cloud.define('getAccountIn', async function (req) {
     let query = new AV.Query(tableName)
 
     let fields = req.params || {}
+    Object.keys(fields).forEach(key => {
+        if (!['sort', 'ids'].includes(key)) {
+            query.equalTo(key, fields[key])
+        }
+    })
+
     let ids = fields.ids || []
     let sort = fields.sort || 1
     if (sort) {
@@ -44,6 +50,12 @@ AV.Cloud.define('getAccountAll', async function (req) {
     let query = new AV.Query(tableName)
 
     let fields = req.params || {}
+    Object.keys(fields).forEach(key => {
+        if (!['sort'].includes(key)) {
+            query.equalTo(key, fields[key])
+        }
+    })
+
     let sort = fields.sort || 1
     if (sort) {
         query.ascending('createdAt')
@@ -73,6 +85,7 @@ AV.Cloud.define('deleteAccount', async function (req) {
 AV.Cloud.define('addAccountIn', async function (req) {
     let fields = req.params || {}
     let accounts = fields.accounts || []
+    let user = fields.user
 
     let objects = []
     accounts.forEach(account => {
@@ -85,6 +98,7 @@ AV.Cloud.define('addAccountIn', async function (req) {
             a.set('ssrSetting', account.ssrSetting || {})
             a.set('vmessSetting', account.vmessSetting || {})
             a.set('socksSetting', account.socksSetting || {})
+            a.set('user', user)
             objects.push(a)
         }
     })

@@ -2,11 +2,8 @@ import * as generate from '../utils/generate'
 import {
     clone,
     execute,
-    request,
     Type,
     encode,
-    decode,
-    uncompose,
     response,
 } from '../utils/util'
 var router = require('express').Router()
@@ -82,6 +79,7 @@ router.post('/generate', async function (req, res, next) {
         content: encode(urls.join('\n')),
         sourceID: ids,
         sourceURL: urls,
+        user: req.currentUser,
     }))
 
     if (addLinkError) {
@@ -193,18 +191,96 @@ router.post('/delete', async function (req, res, next) {
     return res.json(r)
 })
 
-router.get('/refresh', async function(req, res, next) {
+router.get('/refresh', async function (req, res, next) {
     let r = response()
+
+    let params = {}
+    if (req.currentUser.get('username') !== 'admin') {
+        params.user = req.currentUser
+    }
+
+    let [getAccountAllError, accounts] = await execute(AV.Cloud.run('getAccountAll', params))
+
+    if (getAccountAllError) {
+        accounts = []
+    }
+
+    accounts.forEach((v, i) => {
+        let serviceType = v.get('serviceType')
+        accounts[i] = {
+            id: v.get('objectId'),
+            remarks: v.get('remarks'),
+            serviceType: serviceType,
+            host: v.get('host'),
+            port: v.get('port'),
+            encrypt: v.get(`${serviceType}Setting`).encrypt,
+            protocol: v.get(`${serviceType}Setting`).protocol,
+        }
+    })
+
+    let [getSubscribeAllError, subscribes] = await execute(AV.Cloud.run('getSubscribeAll', params))
+
+    if (getSubscribeAllError) {
+        subscribes = []
+    }
+
+    subscribes.forEach((v, i) => {
+        subscribes[i] = {
+            id: v.get('objectId'),
+            remarks: v.get('remarks'),
+            url: v.get('url'),
+            isDisable: v.get('isDisable'),
+        }
+    })
+
+    let [getLinkAllError, links] = await execute(AV.Cloud.run('getLinkAll', params))
+
+    if (getLinkAllError) {
+        links = []
+    }
+
+    links.forEach((v, i) => {
+        links[i] = {
+            id: v.get('objectId'),
+            linkId: v.get('linkId'),
+            sourceID: v.get('sourceID'),
+            sourceURL: v.get('sourceURL'),
+            isDisable: v.get('isDisable'),
+        }
+    })
+
+    r.data = {
+        accounts,
+        subscribes,
+        links,
+    }
+
     return res.json(r)
 })
 
-router.post('/:linkId/update', async function (req, res, next) {
-    let linkId = req.params.linkId
+router.post('/:id/update', async function (req, res, next) {
     let r = response()
-    let isDisabled = req.body.isDisabled || true
+    let id = req.params.id
+    if (!(/^[a-z0-9]{24}$/.test(id))) {
+        [r.message, r.state] = ['不符合的id', 4]
+        return res.json(r)
+    }
 
-    let [err, link] = await execute(AV.Cloud.run('getLink', {
-        linkId
+    let isDisable = req.body.isDisable || false
+
+    if (!req.body.className) {
+        [r.message, r.state] = ['缺少参数className', 3]
+        return res.json(r)
+    }
+
+    let className = req.body.className.toLocaleLowerCase().replace(/^\S/, s => s.toUpperCase())
+    if (!['Link', 'Subscribe'].includes(className)) {
+        [r.message, r.state] = ['不存在的数据表', 3]
+        return res.json(r)
+    }
+
+    let [err, result] = await execute(AV.Cloud.run(`get${className}`, {
+        objectId: id,
     }))
 
     if (err) {
@@ -212,19 +288,17 @@ router.post('/:linkId/update', async function (req, res, next) {
         return res.json(r)
     }
 
-    if (!link) {
+    if (!result) {
         [r.message, r.state] = ['没有该条订阅', 1]
         return res.json(r)
     }
 
-    link.set('isDisable', parseInt(isDisabled) ? false : true)
-    let [saveError, result] = await execute(link.save())
+    result.set('isDisable', parseInt(isDisable) ? false : true)
+    let [saveError, _] = await execute(result.save())
     if (saveError) {
-        [r.message, r.state] = ['更新失败' + saveError.message, 1]
+        [r.message, r.state] = [`更新失败${saveError.message}`, 1]
     } else {
-        [r.message, r.state, r.data] = ['更新成功', 0, {
-            linkId: result.id
-        }]
+        [r.message, r.state] = ['更新成功', 0]
     }
 
     return res.json(r)
@@ -234,13 +308,12 @@ router.post('/subscribe/import', async function (req, res, next) {
     let r = response()
     let remarks = req.body.remarks || ''
     let url = req.body.url || ''
-    let userId = req.currentUser.id
 
     if (!remarks) {
         [r.message, r.state] = ['缺少参数remarks', 3]
         return res.json(r)
     }
-    
+
     if (!url) {
         [r.message, r.state] = ['缺少参数url', 3]
         return res.json(r)
@@ -249,7 +322,7 @@ router.post('/subscribe/import', async function (req, res, next) {
     let [err, result] = await execute(AV.Cloud.run('addSubscribe', {
         remarks,
         url,
-        userId,
+        user: req.currentUser,
     }))
 
     if (err) {

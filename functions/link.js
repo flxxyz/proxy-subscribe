@@ -29,6 +29,12 @@ AV.Cloud.define('getLinkIn', async function (req) {
     let query = new AV.Query(tableName)
 
     let fields = req.params || {}
+    Object.keys(fields).forEach(key => {
+        if (!['sort', 'ids'].includes(key)) {
+            query.equalTo(key, fields[key])
+        }
+    })
+
     let ids = fields.ids || []
     let sort = fields.sort || 1
     if (sort) {
@@ -44,6 +50,12 @@ AV.Cloud.define('getLinkAll', async function (req) {
     let query = new AV.Query(tableName)
 
     let fields = req.params || {}
+    Object.keys(fields).forEach(key => {
+        if (!['sort'].includes(key)) {
+            query.equalTo(key, fields[key])
+        }
+    })
+
     let sort = fields.sort || 1
     if (sort) {
         query.ascending('createdAt')
@@ -86,12 +98,14 @@ AV.Cloud.define('addLink', async function (req) {
     let content = req.params.content
     let sourceID = req.params.sourceID
     let sourceURL = req.params.sourceURL
+    let user = req.params.user
 
     let link = new AV.Object(tableName)
     link.set('linkId', linkId)
     link.set('content', content)
     link.set('sourceID', sourceID)
     link.set('sourceURL', sourceURL)
+    link.set('user', user)
     let [err, res] = await util.execute(link.save())
     if (err) {
         console.error('[addLink]', err.message)

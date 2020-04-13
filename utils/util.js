@@ -30,17 +30,26 @@ const execute = (promise) => {
         .catch(err => [err, null])
 }
 
-const Type = (function (Type) {
-    Type = function () {
-        this.types.forEach(type => {
-            this[`is${type}`] = (p) => Object.prototype.toString.call(p).slice(8, -1) === type
-        })
-    }
-    Type.prototype = {
-        types: ['Object', 'Array', 'String', 'Number', 'Boolean', 'Function', 'RegExp', 'Date', 'Undefined', 'Null', 'Symbol', 'Blob', 'ArrayBuffer'],
-    }
-    return new Type()
-})()
+const Type = {
+    types: [
+        'Object',
+        'Array',
+        'String',
+        'Number',
+        'Boolean',
+        'Function',
+        'RegExp',
+        'Date',
+        'Undefined',
+        'Null',
+        'Symbol',
+        'Blob',
+        'ArrayBuffer'
+    ]
+}
+Type.types.forEach(type => {
+    Type[`is${type}`] = (p) => Object.prototype.toString.call(p).slice(8, -1) === type
+})
 
 const request = (opts) => {
     opts = opts || {}

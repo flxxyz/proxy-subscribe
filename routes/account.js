@@ -3,7 +3,12 @@ var AV = require('leanengine')
 var util = require('../utils/util')
 
 router.get('/', async function (req, res, next) {
-    let [getAccountAllError, accounts] = await util.execute(AV.Cloud.run('getAccountAll'))
+    let params = {}
+    if (req.currentUser.get('username') !== 'admin') {
+        params.user = req.currentUser
+    }
+
+    let [getAccountAllError, accounts] = await util.execute(AV.Cloud.run('getAccountAll', params))
 
     if (getAccountAllError) {
         accounts = []
@@ -13,7 +18,6 @@ router.get('/', async function (req, res, next) {
         let serviceType = v.get('serviceType')
         accounts[i] = {
             id: v.get('objectId'),
-            source: JSON.stringify(v.toFullJSON()),
             remarks: v.get('remarks'),
             serviceType: serviceType,
             host: v.get('host'),
@@ -23,7 +27,7 @@ router.get('/', async function (req, res, next) {
         }
     })
 
-    let [getSubscribeAllError, subscribes] = await util.execute(AV.Cloud.run('getSubscribeAll'))
+    let [getSubscribeAllError, subscribes] = await util.execute(AV.Cloud.run('getSubscribeAll', params))
 
     if (getSubscribeAllError) {
         subscribes = []
@@ -32,13 +36,13 @@ router.get('/', async function (req, res, next) {
     subscribes.forEach((v, i) => {
         subscribes[i] = {
             id: v.get('objectId'),
-            source: JSON.stringify(v.toFullJSON()),
             remarks: v.get('remarks'),
             url: v.get('url'),
+            isDisable: v.get('isDisable'),
         }
     })
 
-    let [getLinkAllError, links] = await util.execute(AV.Cloud.run('getLinkAll'))
+    let [getLinkAllError, links] = await util.execute(AV.Cloud.run('getLinkAll', params))
 
     if (getLinkAllError) {
         links = []
@@ -47,7 +51,6 @@ router.get('/', async function (req, res, next) {
     links.forEach((v, i) => {
         links[i] = {
             id: v.get('objectId'),
-            source: JSON.stringify(v.toFullJSON()),
             linkId: v.get('linkId'),
             sourceID: v.get('sourceID'),
             sourceURL: v.get('sourceURL'),

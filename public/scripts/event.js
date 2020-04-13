@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         },
                         success: function (res) {
                             console.log('res:', res)
+                            refresh()
                         }
                     })
                 }
@@ -117,16 +118,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 })
 
                 if (ids.length > 0) {
-                    proxy.request({
-                        method: 'post',
-                        url: '/api/delete',
-                        data: {
-                            ids: ids.join(','),
-                            className: type,
-                        },
-                        success: function (res) {
-                            console.log('res:', res)
-                        }
+                    layer.confirm('', {
+                        title: '删除',
+                        content: `是否删除这${ids.length}项？`,
+                        btn: ['确认', '取消']
+                    }, function () {
+                        proxy.request({
+                            method: 'post',
+                            url: '/api/delete',
+                            data: {
+                                ids: ids.join(','),
+                                className: type,
+                            },
+                            success: function (res) {
+                                layer.msg('成功')
+                                refresh()
+                            }
+                        })
                     })
                 }
             })
@@ -147,64 +155,165 @@ document.addEventListener('DOMContentLoaded', function () {
                     }, function (remarks, index) {
                         layer.close(index)
                         layer.msg('订阅地址：' + url + '<br>备注：' + remarks)
-                        proxy.request({
-                            method: 'post',
-                            url: '/api/subscribe/import',
-                            data: {
-                                remarks,
-                                url,
-                            },
-                            success: function (res) {
-                                layer.msg('添加成功')
-                                console.log('res:', res)
-                            }
-                        })
+                        setTimeout(function () {
+                            proxy.request({
+                                method: 'post',
+                                url: '/api/subscribe/import',
+                                data: {
+                                    remarks,
+                                    url,
+                                },
+                                success: function (res) {
+                                    refresh()
+                                }
+                            })
+                        }, 2000)
                     })
                 })
             })
         })
     }
 
-    var $isDisableSwitch = proxy.getElementAll('.is-disable .switch .round')
-    if ($isDisableSwitch.length > 0) {
-        $isDisableSwitch.forEach(function ($el) {
+
+
+    var $find = proxy.getElementAll('.find')
+    if ($find.length > 0) {
+        $find.forEach(function ($el) {
             $el.addEventListener('click', function (event) {
-                var root = this.parentElement.parentElement.parentElement
-                var linkId = root.querySelector('.link-id').value
-                var isDisabled = !this.previousElementSibling.checked ? 1 : 0
+                layer.msg('暂时不支持该功能')
+                return;
+                var search = $el.parentElement.previousElementSibling.querySelector('.input').value
+                var type = $el.dataset.type
                 proxy.request({
                     method: 'post',
-                    url: `/api/${linkId}/update`,
+                    url: '/api/find',
                     data: {
-                        isDisabled
+                        search: search.trim(),
+                        className: type,
                     },
-                    success: res => {
-                        res = JSON.parse(res)
-                        let content = !isDisabled ? '已禁用' : '使用中'
-
-                        if (res.state != 0) {
-                            console.log('没修改成功，还原', !this.previousElementSibling.checked)
-                            this.previousElementSibling.checked = !this.previousElementSibling.checked
-                            content = '没修改成功，还原'
-                        }
-
-                        // layer.open({
-                        //     type: 1,
-                        //     area: ['500px', '300px'],
-                        //     title: '你好，layer。',
-                        //     shade: 0,
-                        //     maxmin: true,
-                        //     content: content
-                        // })
-                        openLayer({
-                            shade: 0,
-                            maxmin: true,
-                            content: content,
-                        })
+                    success: function (res) {
+                        console.log('res:', res)
                     }
                 })
-
             })
+        })
+    }
+
+    function reListener() {
+        var $isDisableSwitch = proxy.getElementAll('.is-disable .switch .round')
+        if ($isDisableSwitch.length > 0) {
+            $isDisableSwitch.forEach(function ($el) {
+                $el.addEventListener('click', function (event) {
+                    var className = this.dataset.type
+                    var root = this.parentElement.parentElement.parentElement
+                    var id = root.querySelector(`.${className}-id`).value
+                    var isDisable = !this.previousElementSibling.checked ? 1 : 0
+
+                    if (!!parseInt(this.dataset.lock)) {
+                        return;
+                    }
+                    this.dataset.lock = 1
+
+                    proxy.request({
+                        method: 'post',
+                        url: `/api/${id}/update`,
+                        data: {
+                            isDisable,
+                            className,
+                        },
+                        success: res => {
+                            res = JSON.parse(res)
+                            let content = isDisable ? '使用中' : '已禁用'
+
+                            if (res.state != 0) {
+                                console.log('没修改成功，还原', !this.previousElementSibling.checked)
+                                this.previousElementSibling.checked = !this.previousElementSibling.checked
+                                content = '没修改成功，还原'
+                            }
+
+                            content = template.disable.replace('<%CONTENT%>', content)
+
+                            openLayer({
+                                shade: 0,
+                                maxmin: true,
+                                content,
+                            })
+                        },
+                        complete: () => {
+                            this.previousElementSibling.checked = isDisable ? true : false
+                            this.dataset.lock = 0
+                        }
+                    })
+
+                })
+            })
+        }
+    }
+    reListener()
+
+    function refresh(className) {
+        let loading = layer.msg('加载中', {
+            icon: 16,
+            shade: 0.01,
+            time: 18500,
+        })
+
+        proxy.request({
+            method: 'get',
+            url: '/api/refresh',
+            data: {
+                className,
+            },
+            success: function (res) {
+                layer.close(loading)
+                let result = JSON.parse(res)
+                let accounts = result.data.accounts
+                $('.account').remove()
+                accounts.forEach(a => {
+                    let account = template.accounts
+                        .replace('<%ID%>', a.id)
+                        .replace('<%REMARKS%>', a.remarks)
+                        .replace('<%SERVICE_TYPE%>', a.serviceType)
+                        .replace('<%HOST%>', a.host)
+                        .replace('<%PORT%>', a.port)
+                        .replace('<%ENCRYPT%>', a.encrypt)
+                        .replace('<%PROTOCOL%>', a.protocol)
+                    $('.accounts tbody').append(account)
+                })
+
+                let subscribes = result.data.subscribes
+                $('.subscribe').remove()
+                subscribes.forEach(s => {
+                    let subscribe = template.subscribes
+                        .replace('<%ID%>', s.id)
+                        .replace('<%REMARKS%>', s.remarks)
+                        .replace('<%URL%>', s.url)
+                        .replace('<%IS_DISABLE%>', !s.isDisable ? 'checked' : '')
+                    $('.subscribes tbody').append(subscribe)
+                })
+
+                let links = result.data.links
+                $('.link').remove()
+                links.forEach(l => {
+                    let ids = l.sourceID.map(id => {
+                        return `<span class='id'>${id}</span>`
+                    })
+                    let urls = l.sourceURL.map(url => {
+                        return `<a class='url' href='javascript:;'>${url}</a>`
+                    })
+
+                    let link = template.links
+                        .replace('<%ID%>', s.id)
+                        .replace('<%LINK_ID%>', s.linkId)
+                        .replace('<%SOURCE_ID%>', ids.join(''))
+                        .replace('<%SOURCE_URL%>', urls.join(''))
+                        .replace('<%IS_DISABLE%>', !s.isDisable ? 'checked' : '')
+                    $('.links tbody').append(link)
+                })
+            },
+            complete: function () {
+                reListener()
+            }
         })
     }
 
@@ -232,4 +341,13 @@ document.addEventListener('DOMContentLoaded', function () {
             content: opts.content,
         })
     }
+
+    var template = {}
+    proxy.request({
+        method: 'get',
+        url: '/template.json',
+        success: function (res) {
+            template = JSON.parse(res)
+        },
+    })
 })

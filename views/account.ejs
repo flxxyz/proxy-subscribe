@@ -29,11 +29,12 @@
                             </div>
                             <div class="dropdown-menu" id="dropdown-menu" role="menu">
                                 <div class="dropdown-content">
-                                    <a href="#" class="dropdown-item">添加vmess链接</a>
-                                    <a href="#" class="dropdown-item">添加ssr链接</a>
-                                    <a href="#" class="dropdown-item">添加ss链接</a>
+                                    <a href="javascript:;" class="dropdown-item">添加vmess链接</a>
+                                    <a href="javascript:;" class="dropdown-item">添加ssr链接</a>
+                                    <a href="javascript:;" class="dropdown-item">添加ss链接</a>
                                     <hr class="dropdown-divider">
-                                    <a href="#" class="dropdown-item delete-selector" data-type="account">删除所选服务器</a>
+                                    <a href="javascript:;" class="dropdown-item delete-selector"
+                                        data-type="account">删除所选服务器</a>
                                 </div>
                             </div>
                         </div>
@@ -45,17 +46,17 @@
                                 <input class="input" type="text" placeholder="">
                             </div>
                             <div class="control">
-                                <a class="button is-info">查找</a>
+                                <a href="javascript:;" class="button is-info find" data-type="account">查找</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="table-container">
-                <table class="table is-hoverable">
+                <table class="table is-hoverable accounts">
                     <thead>
                         <tr>
-                            <th class="has-text-left" width="38px">
+                            <th class="has-text-center" width="38px">
                                 <label>
                                     <input class="choose" type="checkbox" data-type="account">
                                 </label>
@@ -80,12 +81,11 @@
                             <td class="remarks" title="<%= account.remarks %>">
                                 <a href="javascript:;"><%= account.remarks %></a>
                             </td>
-                            <td class="service-type" title="<%= account.serviceType %>"><%= account.serviceType %>
-                            </td>
-                            <td class="host" title="<%= account.host %>"><%= account.host %></td>
-                            <td class="port" title="<%= account.port %>"><%= account.port %></td>
-                            <td class="encrypt" title="<%= account.encrypt %>"><%= account.encrypt %></td>
-                            <td class="protocol" title="<%= account.protocol %>"><%= account.protocol %></td>
+                            <td class="service-type"><%= account.serviceType %></td>
+                            <td class="host"><%= account.host %></td>
+                            <td class="port"><%= account.port %></td>
+                            <td class="encrypt"><%= account.encrypt %></td>
+                            <td class="protocol"><%= account.protocol %></td>
                         </tr>
                         <% } %>
                     </tbody>
@@ -93,37 +93,42 @@
             </div>
         </section>
         <section>
-            <div class="column is-half">
-                <div class="dropdown">
-                    <div class="dropdown-trigger">
-                        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
-                            <span>选项</span>
-                            <span class="icon is-small">
-                                <i class="fas fa-angle-down" aria-hidden="true"></i>
-                            </span>
-                        </button>
-                    </div>
-                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
-                        <div class="dropdown-content">
-                            <a href="#" class="dropdown-item delete-selector" data-type="subscribe">删除所选订阅</a>
+            <div class="container is-fluid">
+                <div class="columns">
+                    <div class="column is-half">
+                        <div class="dropdown">
+                            <div class="dropdown-trigger">
+                                <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                                    <span>选项</span>
+                                    <span class="icon is-small">
+                                        <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                    </span>
+                                </button>
+                            </div>
+                            <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                                <div class="dropdown-content">
+                                    <a href="javascript:;" class="dropdown-item delete-selector"
+                                        data-type="subscribe">删除所选订阅</a>
+                                </div>
+                            </div>
                         </div>
+                        <a class="button is-warning import-subscribe">添加订阅</a>
+                        <a class="button is-primary update-subscribe">更新订阅</a>
                     </div>
                 </div>
-                <a class="button is-warning import-subscribe">添加订阅</a>
-                <a class="button is-primary update-subscribe">更新订阅</a>
             </div>
             <div class="table-container">
-                <table class="table is-hoverable">
+                <table class="table is-hoverable subscribes">
                     <thead>
                         <tr>
-                            <th class="has-text-left" width="38px">
+                            <th class="has-text-center" width="38px">
                                 <label>
                                     <input class="choose" type="checkbox" data-type="subscribe">
                                 </label>
                             </th>
                             <th class="has-text-left">订阅服务名</th>
                             <th class="has-text-left">URL</th>
-                            <th class="has-text-left">禁用/使用</th>
+                            <th class="has-text-right">禁用/使用</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -135,12 +140,12 @@
                                     <input type="hidden" class="subscribe-id" value="<%= subscribe.id %>">
                                 </label>
                             </td>
-                            <td><%= subscribe.remarks %></td>
-                            <td><%= subscribe.url %></td>
-                            <td class="is-disable">
+                            <td class="remarks"><%= subscribe.remarks %></td>
+                            <td class="url"><%= subscribe.url %></td>
+                            <td class="has-text-right is-disable">
                                 <label class="switch">
                                     <input type="checkbox" <%= !subscribe.isDisable ? 'checked' : '' %>>
-                                    <div class="round"></div>
+                                    <div class="round" data-type="subscribe"></div>
                                 </label>
                             </td>
                         </tr>
@@ -150,28 +155,33 @@
             </div>
         </section>
         <section>
-            <div class="column is-half">
-                <div class="dropdown">
-                    <div class="dropdown-trigger">
-                        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
-                            <span>选项</span>
-                            <span class="icon is-small">
-                                <i class="fas fa-angle-down" aria-hidden="true"></i>
-                            </span>
-                        </button>
-                    </div>
-                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
-                        <div class="dropdown-content">
-                            <a href="#" class="dropdown-item delete-selector" data-type="link">删除所选链接</a>
+            <div class="container is-fluid">
+                <div class="columns">
+                    <div class="column is-half">
+                        <div class="dropdown">
+                            <div class="dropdown-trigger">
+                                <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                                    <span>选项</span>
+                                    <span class="icon is-small">
+                                        <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                    </span>
+                                </button>
+                            </div>
+                            <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                                <div class="dropdown-content">
+                                    <a href="javascript:;" class="dropdown-item delete-selector"
+                                        data-type="link">删除所选链接</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="table-container">
-                <table class="table is-hoverable">
+                <table class="table is-hoverable links">
                     <thead>
                         <tr>
-                            <th class="has-text-left" width="38px">
+                            <th class="has-text-center" width="38px">
                                 <label>
                                     <input class="choose" type="checkbox" data-type="link">
                                 </label>
@@ -179,7 +189,7 @@
                             <th class="has-text-left" width="380rem">订阅ID</th>
                             <th class="has-text-left" width="120rem">服务器ID</th>
                             <th class="has-text-left" width="120rem">包含的URL</th>
-                            <th class="has-text-left" width="100rem">禁用/使用</th>
+                            <th class="has-text-right" width="100rem">禁用/使用</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -188,26 +198,26 @@
                             <td>
                                 <label>
                                     <input type="checkbox" class="checkbox">
-                                    <input type="hidden" class="link-id" value="<%= link.linkId %>">
+                                    <input type="hidden" class="link-id" value="<%= link.id %>">
                                 </label>
                             </td>
-                            <td title="点击复制">
+                            <td class="linkId">
                                 <a href="javascript:;"><%= link.linkId %></a>
                             </td>
                             <td class="ids">
                                 <% for(let id of link.sourceID) {  %>
-                                <span class="id" title="<%= id %>"><%= id %></span>
+                                <span class="id"><%= id %></span>
                                 <% } %>
                             </td>
                             <td class="urls">
                                 <% for(let url of link.sourceURL) {  %>
-                                <a class="url" href="javascript:;" title="点击复制"><%= url %></a>
+                                <a class="url" href="javascript:;"><%= url %></a>
                                 <% } %>
                             </td>
-                            <td class="is-disable">
+                            <td class="has-text-right is-disable">
                                 <label class="switch">
                                     <input type="checkbox" <%= !link.isDisable ? 'checked' : '' %>>
-                                    <div class="round"></div>
+                                    <div class="round" data-type="link"></div>
                                 </label>
                             </td>
                         </tr>

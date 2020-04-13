@@ -1,0 +1,11 @@
+{
+    "generate": "<div>generate</div>",
+    "delete": "<div>delete</div>",
+    "disable": "<div style='text-align:center;padding-top:30px'><%CONTENT%></div>",
+    "refresh": "<div>refresh</div>",
+    "update": "<div>update</div>",
+    "import": "<div>import</div>",
+    "accounts": "<tr class='account'><td><label><input type='checkbox' class='checkbox'><input type='hidden' class='account-id' value='<%ID%>'></label></td><td class='remarks'><a href='javascript:;'><%REMARKS%></a></td><td class='service-type'><%SERVICE_TYPE%></td><td class='host'><%HOST%></td><td class='port'><%PORT%></td><td class='encrypt'><%ENCRYPT%></td><td class='protocol'><%PROTOCOL%></td></tr>",
+    "subscribes": "<tr class='subscribe'><td><label><input type='checkbox' class='checkbox'><input type='hidden' class='subscribe-id' value='<%ID%>'></label></td><td class='remarks'><%REMARKS%></td><td class='url'><%URL%></td><td class='has-text-right is-disable'><label class='switch'><input type='checkbox' <%IS_DISABLE%>><div class='round' data-type='subscribe'></div></label></td></tr>",
+    "links": "<tr class='link'><td><label><input type='checkbox' class='checkbox'><input type='hidden' class='link-id' value='<%ID%>'></label></td><td class='linkId'><a href='javascript:;'><%LINK_ID%></a></td><td class='ids'><%SOURCE_ID%></td><td class='urls'><%SOURCE_URL%></td><td class='has-text-right is-disable'><label class='switch'><input type='checkbox' <%IS_DISABLE%>><div class='round' data-type='link'></div></label></td></tr>"
+}
