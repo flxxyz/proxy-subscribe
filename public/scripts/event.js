@@ -356,11 +356,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     })
 
                     let link = template.links
-                        .replace('<%ID%>', s.id)
-                        .replace('<%LINK_ID%>', s.linkId)
+                        .replace('<%ID%>', l.id)
+                        .replace('<%LINK_ID%>', l.linkId)
                         .replace('<%SOURCE_ID%>', ids.join(''))
                         .replace('<%SOURCE_URL%>', urls.join(''))
-                        .replace('<%IS_ENABLE%>', s.isEnable ? 'checked' : '')
+                        .replace('<%IS_ENABLE%>', l.isEnable ? 'checked' : '')
                     $('.links tbody').append(link)
                 })
             },
