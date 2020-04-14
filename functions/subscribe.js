@@ -100,3 +100,18 @@ AV.Cloud.define('deleteSubscribe', async function (req) {
         return subscribes.map(v => v.get('objectId'))
     }
 })
+
+AV.Cloud.define('deleteSubscribeOther', async function (req) {
+    let query = new AV.Query(tableName)
+
+    let fields = req.params || {}
+    Object.keys(fields).forEach(key => query.equalTo(key, fields[key]))
+    let [err, subscribes] = await util.execute(query.find())
+
+    if (err) {
+        return false
+    } else {
+        await AV.Object.destroyAll(subscribes)
+        return subscribes.map(v => v.get('objectId'))
+    }
+})

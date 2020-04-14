@@ -77,8 +77,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if ($generate.length > 0) {
         $generate.forEach($el => {
             $el.addEventListener('click', function (event) {
+                layer.msg('暂时无法使用')
+                return;
                 var ids = []
-
                 proxy.getElementAll(`.account`).forEach($item => {
                     var checkbox = $item.querySelector('input.checkbox')
                     if (checkbox.checked) {
@@ -97,6 +98,32 @@ document.addEventListener('DOMContentLoaded', function () {
                             console.log('res:', res)
                             refresh()
                         }
+                    })
+                }
+            })
+        })
+    }
+
+    var $clearAccount = proxy.getElementAll('.clear-account')
+    if ($clearAccount.length > 0) {
+        $clearAccount.forEach(function ($el) {
+            $el.addEventListener('click', function (event) {
+                if (proxy.getElementAll(`.${$el.dataset.type}`).length > 0) {
+                    layer.confirm('', {
+                        title: '清空',
+                        content: '是否清除所有服务器？',
+                        btn: ['确认', '取消']
+                    }, function () {
+                        proxy.request({
+                            method: 'post',
+                            url: '/api/subscribe/clear',
+                            success: function () {
+                                layer.msg('清空成功！')
+                            },
+                            complete: function () {
+                                refresh()
+                            }
+                        })
                     })
                 }
             })
@@ -174,6 +201,25 @@ document.addEventListener('DOMContentLoaded', function () {
         })
     }
 
+    var $updateSubscribe = proxy.getElementAll('.update-subscribe')
+    if ($updateSubscribe.length > 0) {
+        $updateSubscribe.forEach(function ($el) {
+            $el.addEventListener('click', function (event) {
+                $el.classList.add('is-loading')
+                proxy.request({
+                    method: 'post',
+                    url: '/api/subscribe/update',
+                    success: function (res) {
+                        console.log('res=', res)
+                    },
+                    complete: function () {
+                        $el.classList.remove('is-loading')
+                        refresh()
+                    }
+                })
+            })
+        })
+    }
 
 
     var $find = proxy.getElementAll('.find')
@@ -200,14 +246,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function reListener() {
-        var $isDisableSwitch = proxy.getElementAll('.is-disable .switch .round')
-        if ($isDisableSwitch.length > 0) {
-            $isDisableSwitch.forEach(function ($el) {
+        var $isEnableSwitch = proxy.getElementAll('.is-enable .switch .round')
+        if ($isEnableSwitch.length > 0) {
+            $isEnableSwitch.forEach(function ($el) {
                 $el.addEventListener('click', function (event) {
                     var className = this.dataset.type
                     var root = this.parentElement.parentElement.parentElement
                     var id = root.querySelector(`.${className}-id`).value
-                    var isDisable = !this.previousElementSibling.checked ? 1 : 0
+                    var isEnable = !this.previousElementSibling.checked ? 1 : 0
 
                     if (!!parseInt(this.dataset.lock)) {
                         return;
@@ -218,12 +264,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         method: 'post',
                         url: `/api/${id}/update`,
                         data: {
-                            isDisable,
+                            isEnable,
                             className,
                         },
                         success: res => {
                             res = JSON.parse(res)
-                            let content = isDisable ? '使用中' : '已禁用'
+                            let content = isEnable ? '使用中' : '已禁用'
 
                             if (res.state != 0) {
                                 console.log('没修改成功，还原', !this.previousElementSibling.checked)
@@ -231,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 content = '没修改成功，还原'
                             }
 
-                            content = template.disable.replace('<%CONTENT%>', content)
+                            content = template.enable.replace('<%CONTENT%>', content)
 
                             openLayer({
                                 shade: 0,
@@ -240,12 +286,19 @@ document.addEventListener('DOMContentLoaded', function () {
                             })
                         },
                         complete: () => {
-                            this.previousElementSibling.checked = isDisable ? true : false
+                            console.log('isEnable=', isEnable)
+                            this.previousElementSibling.checked = isEnable ? true : false
                             this.dataset.lock = 0
                         }
                     })
-
                 })
+            })
+        }
+
+        var $choose = proxy.getElementAll('.choose')
+        if ($choose.length > 0) {
+            $choose.forEach(function ($el) {
+                $el.checked = false
             })
         }
     }
@@ -276,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         .replace('<%SERVICE_TYPE%>', a.serviceType)
                         .replace('<%HOST%>', a.host)
                         .replace('<%PORT%>', a.port)
-                        .replace('<%ENCRYPT%>', a.encrypt)
+                        .replace('<%METHOD%>', a.method)
                         .replace('<%PROTOCOL%>', a.protocol)
                     $('.accounts tbody').append(account)
                 })
@@ -288,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         .replace('<%ID%>', s.id)
                         .replace('<%REMARKS%>', s.remarks)
                         .replace('<%URL%>', s.url)
-                        .replace('<%IS_DISABLE%>', !s.isDisable ? 'checked' : '')
+                        .replace('<%IS_ENABLE%>', s.isEnable ? 'checked' : '')
                     $('.subscribes tbody').append(subscribe)
                 })
 
@@ -307,7 +360,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         .replace('<%LINK_ID%>', s.linkId)
                         .replace('<%SOURCE_ID%>', ids.join(''))
                         .replace('<%SOURCE_URL%>', urls.join(''))
-                        .replace('<%IS_DISABLE%>', !s.isDisable ? 'checked' : '')
+                        .replace('<%IS_ENABLE%>', s.isEnable ? 'checked' : '')
                     $('.links tbody').append(link)
                 })
             },

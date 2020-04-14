@@ -20,7 +20,7 @@ router.get('/:linkId', async function (req, res, next) {
         return res.send('')
     }
 
-    if (link.get('isDisable')) {
+    if (link.get('isEnable')) {
         return res.send('')
     }
 

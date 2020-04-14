@@ -1,6 +1,18 @@
 import {
-    compose
+    clone,
+    compose,
+    decode,
+    requestOrigin,
 } from './util'
+
+let AccountTemplate = {
+    host: '',
+    port: '',
+    remarks: '',
+    serviceType: '',
+    vmessSetting: {},
+    ssrSetting: {},
+}
 
 const serializeVmess = (template, value) => {
     template.ps = value.get('remarks')
@@ -40,85 +52,79 @@ const serializeSsr = (template, value) => {
     return compose(value.get('serviceType'), data)
 }
 
-const serializeSs = (template, value) => {
-    return compose(value.get('serviceType'), JSON.stringify(template))
-}
-
-const deserializeVmess = (type, data, qs) => {
-    let isV2ray = true
+const deserializeVmess = (data, qs) => {
+    let isShadowrocket = true
     try {
         data = JSON.parse(data)
     } catch (err) {
-        isV2ray = false
+        isShadowrocket = false
     }
 
-    let template = {
-        host: '',
-        port: '',
-        remarks: '',
-        serviceType: type,
-        vmessSetting: {}
-    }
+    let template = clone(AccountTemplate)
+    template.serviceType = 'vmess'
+    template.vmessSetting.isShadowrocket = isShadowrocket
 
-    if (isV2ray) {
+    if (isShadowrocket) {
         template.remarks = data.ps
         template.host = data.add
         template.port = data.port
-        template.vmessSetting.userId = data.id
-        template.vmessSetting.alterId = data.aid
-        template.vmessSetting.protocol = data.net
-        template.vmessSetting.type = data.type
-        template.vmessSetting.host = data.host
-        template.vmessSetting.path = data.path
-        template.vmessSetting.tls = data.tls
+        template.vmessSetting = Object.assign(template.vmessSetting, data)
     } else {
         let newData = []
         data = data.split('@')
         data.forEach(v => newData.push.apply(newData, v.split(':')))
         template.host = newData[2]
         template.port = newData[3]
-        template.vmessSetting.encrypt = newData[0] //加密方式
-        template.vmessSetting.userId = newData[1] //用户id，没有额外id
-
         template.remarks = qs.remarks
-        template.vmessSetting.path = qs.path
-        template.vmessSetting.host = qs.obfsParam
-        template.vmessSetting.type = ['http', 'h2', 'websocket', 'mkcp'].includes(qs.obfs) ? qs.obfs : 'none'
-        qs.tls = qs.tls || ''
-        if (qs.tls) {
-            template.vmessSetting.tls = qs.tls
-        }
-        qs.mux = qs.mux || ''
-        if (qs.mux) {
-            template.vmessSetting.mux = qs.mux
-        }
+        template.vmessSetting.method = newData[0]
+        template.vmessSetting.password = newData[1]
+        template.vmessSetting.host = newData[2]
+        template.vmessSetting.port = newData[3]
+        template.vmessSetting.remarks = qs.remarks || ''
+        template.vmessSetting.obfs = ['http', 'h2', 'websocket', 'mkcp'].includes(qs.obfs) ? qs.obfs : 'none'
+        template.vmessSetting.obfsParam = qs.obfsParam || ''
+        template.vmessSetting.path = qs.path || ''
+        template.vmessSetting.tls = qs.tls || ''
     }
 
     return template
 }
 
-const deserializeSsr = (value) => {
-    // let [base, params] = decode(value).split('/?')
-    // base = base.split(':')
-    // template.host = base[0]
-    // template.port = base[1]
-    // template.protocol = base[2]
-    // template.encrypt = base[3]
-    // template.obfs = base[4]
-    // template.password = decode(base[5])
+const deserializeSsr = (data, qs) => {
+    let template = clone(AccountTemplate)
+    template.serviceType = 'ssr'
 
-    return ''
+    let [base, params] = data.split('/?')
+    base = base.split(':')
+    params = qs.decode(params)
+    template.host = base[0]
+    template.port = base[1]
+    template.ssrSetting.proto = base[2]
+    template.ssrSetting.method = base[3]
+    template.ssrSetting.obfs = base[4]
+    template.ssrSetting.password = decode(base[5])
+    template.ssrSetting.obfsparam = decode(params.obfsparam)
+    template.ssrSetting.protoparam = decode(params.protoparam)
+    template.ssrSetting.remarks = decode(params.remarks)
+    template.remarks = template.ssrSetting.remarks
+    template.ssrSetting.group = decode(params.group)
+
+    return template
 }
 
-const deserializeSs = (value) => {
-    return ''
+const updateSubscribe = (urls) => {
+    let arr = []
+    urls.forEach(url => arr.push(requestOrigin({
+        url,
+        timeout: 15000,
+    })))
+    return Promise.all(arr)
 }
 
 module.exports = {
     deserializeVmess,
     deserializeSsr,
-    deserializeSs,
     serializeVmess,
     serializeSsr,
-    serializeSs,
+    updateSubscribe,
 }

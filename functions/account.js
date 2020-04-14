@@ -82,29 +82,45 @@ AV.Cloud.define('deleteAccount', async function (req) {
     }
 })
 
+AV.Cloud.define('deleteAccountOther', async function (req) {
+    let query = new AV.Query(tableName)
+
+    let fields = req.params || {}
+    Object.keys(fields).forEach(key => query.equalTo(key, fields[key]))
+    let [err, accounts] = await util.execute(query.find())
+
+    if (err) {
+        return false
+    } else {
+        await AV.Object.destroyAll(accounts)
+        return accounts.map(v => v.get('objectId'))
+    }
+})
+
 AV.Cloud.define('addAccountIn', async function (req) {
     let fields = req.params || {}
     let accounts = fields.accounts || []
-    let user = fields.user
 
     let objects = []
     accounts.forEach(account => {
         if (account !== '') {
             let a = new AV.Object(tableName)
-            a.set('host', account.host)
-            a.set('port', account.port)
+            a.set('host', account.host.toString())
+            a.set('port', account.port.toString())
             a.set('remarks', decodeURIComponent(account.remarks))
             a.set('serviceType', account.serviceType)
             a.set('ssrSetting', account.ssrSetting || {})
             a.set('vmessSetting', account.vmessSetting || {})
             a.set('socksSetting', account.socksSetting || {})
-            a.set('user', user)
+            a.set('user', account.user)
+            a.set('subscribe', account.subscribe)
             objects.push(a)
         }
     })
 
     let [err, res] = await util.execute(AV.Object.saveAll(objects))
     if (err) {
+        console.log(err.message)
         return false
     } else {
         return res

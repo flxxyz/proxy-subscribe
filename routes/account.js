@@ -3,11 +3,9 @@ var AV = require('leanengine')
 var util = require('../utils/util')
 
 router.get('/', async function (req, res, next) {
-    let params = {}
-    if (req.currentUser.get('username') !== 'admin') {
-        params.user = req.currentUser
+    let params = {
+        user: req.currentUser
     }
-
     let [getAccountAllError, accounts] = await util.execute(AV.Cloud.run('getAccountAll', params))
 
     if (getAccountAllError) {
@@ -22,8 +20,14 @@ router.get('/', async function (req, res, next) {
             serviceType: serviceType,
             host: v.get('host'),
             port: v.get('port'),
-            encrypt: v.get(`${serviceType}Setting`).encrypt,
-            protocol: v.get(`${serviceType}Setting`).protocol,
+        }
+
+        if (v.get(`${serviceType}Setting`).isShadowrocket) {
+            accounts[i].method = 'auto'
+            accounts[i].protocol = v.get(`${serviceType}Setting`).net
+        } else {
+            accounts[i].method = v.get(`${serviceType}Setting`).method
+            accounts[i].protocol = v.get(`${serviceType}Setting`).obfs
         }
     })
 
@@ -38,7 +42,7 @@ router.get('/', async function (req, res, next) {
             id: v.get('objectId'),
             remarks: v.get('remarks'),
             url: v.get('url'),
-            isDisable: v.get('isDisable'),
+            isEnable: v.get('isEnable'),
         }
     })
 
@@ -54,7 +58,7 @@ router.get('/', async function (req, res, next) {
             linkId: v.get('linkId'),
             sourceID: v.get('sourceID'),
             sourceURL: v.get('sourceURL'),
-            isDisable: v.get('isDisable'),
+            isEnable: v.get('isEnable'),
         }
     })
 

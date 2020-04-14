@@ -86,7 +86,7 @@ AV.Cloud.define('getLinkContent', async function (req) {
         return ''
     }
 
-    if (link.get('isDisable')) {
+    if (link.get('isEnable')) {
         return ''
     }
 

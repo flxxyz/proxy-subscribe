@@ -1,7 +1,9 @@
 const rq = require('request-promise')
 const Base64 = require('js-base64').Base64
 
-import * as qs from './url'
+import {
+    qs
+} from './url'
 
 const clone = (data) => {
     if (Array.isArray(data)) {
@@ -52,6 +54,10 @@ Type.types.forEach(type => {
 })
 
 const request = (opts) => {
+    return execute(requestOrigin(opts))
+}
+
+const requestOrigin = (opts) => {
     opts = opts || {}
     opts.method = (opts.method || 'get').toLocaleUpperCase()
     opts.url = opts.url
@@ -62,7 +68,7 @@ const request = (opts) => {
         opts.body = opts.body || {}
     }
 
-    return execute(rq(opts))
+    return rq(opts)
 }
 
 const encode = (data) => {
@@ -79,8 +85,8 @@ const compose = (type, data, qs = '') => {
 
 const uncompose = (url) => {
     let [type, value] = url.split('://')
-    let [content, qs] = value.split('?')
-    return [type, decode(content), qs.decode(qs || '')]
+    let [content, queryString] = value.split('?')
+    return [type, decode(content), qs.decode(queryString || '')]
 }
 
 const response = (message = 'success', state = 0, data) => {
@@ -97,6 +103,7 @@ export {
     execute,
     Type,
     request,
+    requestOrigin,
     compose,
     uncompose,
     encode,
