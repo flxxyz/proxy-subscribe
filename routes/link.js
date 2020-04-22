@@ -8,6 +8,11 @@ router.get('/', function (req, res, next) {
 router.get('/:linkId', async function (req, res, next) {
     res.set('Content-Type', 'text/plain')
 
+    let linkId = req.params.linkId
+    if (!/^[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{12}$/.test(linkId)) {
+        return res.send('')
+    }
+
     let [getLinkError, link] = await util.execute(AV.Cloud.run('getLink', {
         linkId: req.params.linkId
     }))
@@ -20,7 +25,7 @@ router.get('/:linkId', async function (req, res, next) {
         return res.send('')
     }
 
-    if (link.get('isEnable')) {
+    if (!link.get('isEnable')) {
         return res.send('')
     }
 

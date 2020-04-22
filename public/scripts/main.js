@@ -56,7 +56,7 @@
         opts.method = (opts.method || 'get').toLocaleUpperCase()
         opts.url = opts.url || ''
         opts.async = opts.async || true
-        opts.timeout = opts.async ? (opts.timeout || 5000) : 0
+        opts.T = opts.async ? (opts.T || 5000) : 0
         opts.dataType = opts.async ? (opts.dataType || 'text') : ''
         opts.data = opts.data || {}
         opts.queryString = (opts.queryString || opts.qs) || {}
@@ -66,7 +66,7 @@
             console.log('请求错误', err)
         }
         opts.complete = opts.complete || function () {}
-        opts.ontimeout = function (e) {
+        opts.timeout = opts.timeout || function (e) {
             console.log('请求超时', e)
         }
 
@@ -83,20 +83,24 @@
             })
         }
 
+        var st = 0
         var xhr = new XMLHttpRequest()
-        xhr.timeout = opts.timeout
+        xhr.timeout = opts.T
         xhr.responseType = opts.dataType
-        xhr.onreadystatechange = function (e) {
-            if (xhr.readyState === 4) {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    opts.success.call(undefined, xhr.response)
-                } else {
-                    opts.fail.call(undefined, xhr)
+        xhr.withCredentials = true
+        xhr.addEventListener('readystatechange', function () {
+            if (this.readyState === this.DONE) {
+                if ((new Date().getTime() - st) <= this.T) {
+                    if (this.status >= 200 && this.status < 300) {
+                        opts.success.call(undefined, this.response)
+                    } else {
+                        opts.fail.call(undefined, this)
+                    }
                 }
             }
-        }
-        xhr.onload = (e) => opts.complete.call(undefined, e.target)
-        xhr.ontimeout = (e) => opts.ontimeout.call(undefined, e.target)
+        })
+        xhr.addEventListener('load', opts.complete.bind(xhr))
+        xhr.addEventListener('timeout', opts.timeout.bind(xhr))
 
         switch (opts.dataType) {
             case 'blob':
@@ -155,6 +159,7 @@
             xhr.setRequestHeader(key, opts.header[key])
         })
         console.log('[send]', opts.url)
+        st = new Date().getTime()
         xhr.send(opts.data)
     }
     /* 一些静态方法end */

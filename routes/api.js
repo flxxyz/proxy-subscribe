@@ -13,82 +13,71 @@ var router = require('express').Router()
 var AV = require('leanengine')
 var uuid = require('uuid')
 
-const template = {
-    vmess: {
-        v: '2',
-        ps: '',
-        add: '',
-        port: '',
-        id: '',
-        aid: '4',
-        net: 'tcp',
-        type: 'none',
-        host: '',
-        path: '/',
-        tls: '',
-    },
-    ssr: {
-        password: '',
-        encrypt: 'none',
-        protocol: 'origin',
-        protocolParam: '',
-        obfs: 'plain',
-        obfsParam: '',
-    },
-    socks: {
-        username: '',
-        password: '',
-    },
-}
+router.post('/generate', async function (req, res, next) {
+    let r = response()
 
-// router.post('/generate', async function (req, res, next) {
-//     let r = response()
+    let ids = []
+    if (req.body.ids && typeof req.body.ids !== 'object') {
+        ids = [...new Set(req.body.ids.split(',').filter(v => v !== ''))]
+    }
 
-//     let ids = []
-//     if (req.body.ids && typeof req.body.ids !== 'object') {
-//         ids = [...new Set(req.body.ids.split(',').filter(v => v !== ''))]
-//     }
+    if (ids.length === 0) {
+        [r.message, r.state] = ['缺少参数ids', 3]
+        return res.json(r)
+    }
 
-//     if (ids.length === 0) {
-//         [r.message, r.state] = ['缺少参数ids', 3]
-//         return res.json(r)
-//     }
+    let [getAccountInError, accounts] = await execute(AV.Cloud.run('getAccountIn', {
+        ids
+    }))
 
-//     let [getAccountInError, accounts] = await execute(AV.Cloud.run('getAccountIn', {
-//         ids
-//     }))
+    if (getAccountInError) {
+        accounts = []
+    }
 
-//     if (getAccountInError) {
-//         accounts = []
-//     }
+    let urls = []
+    let sourceAccounts = []
+    accounts.forEach(a => {
+        a = a.toJSON()
 
-//     let urls = accounts.map(v => {
-//         let func = generate[`serialize${v.get('serviceType').replace(/^\S/, s => s.toUpperCase())}`]
-//         return func(clone(template[v.get('serviceType')]), v)
-//     })
+        urls.push(a.sourceURL)
 
-//     let [addLinkError, isAdded] = await execute(AV.Cloud.run('addLink', {
-//         linkId: uuid(),
-//         content: encode(urls.join('\n')),
-//         sourceID: ids,
-//         sourceURL: urls,
-//         user: req.currentUser,
-//     }))
+        sourceAccounts.push({
+            remarks: a.remarks,
+            protocol: a.protocol,
+            method: a.method,
+            port: a.port,
+            host: a.host,
+            setting: a.setting,
+            sourceURL: a.sourceURL,
+            id: a.objectId,
+        })
+    })
 
-//     if (addLinkError) {
-//         [r.message, r.state] = ['生成订阅地址出现错误', 2]
-//     } else {
-//         if (!isAdded) {
-//             [r.message, r.state, r.data] = ['生成订阅地址失败', 1]
-//         } else {
-//             [r.message, r.state, r.data] = ['生成订阅地址成功', 0, {
-//                 linkId: isAdded.get('linkId')
-//             }]
-//         }
-//     }
+    if (accounts.length > 0) {
+        let [addLinkError, isAdded] = await execute(AV.Cloud.run('addLink', {
+            linkId: uuid(),
+            content: encode(urls.join('\n')),
+            sourceAccounts,
+            user: req.currentUser,
+        }))
 
-//     return res.json(r)
-// })
+        if (addLinkError) {
+            [r.message, r.state] = ['生成订阅地址出现错误', 2]
+        } else {
+            if (!isAdded) {
+                [r.message, r.state, r.data] = ['生成订阅地址失败', 1]
+            } else {
+                [r.message, r.state, r.data] = ['生成订阅地址成功', 0, {
+                    linkId: isAdded.get('linkId')
+                }]
+            }
+        }
+    } else {
+        [r.message, r.state, r.data] = ['不存在的服务器列表', 4]
+    }
+
+    return res.json(r)
+})
 
 router.post('/delete', async function (req, res, next) {
     let r = response()
@@ -156,24 +145,15 @@ router.get('/refresh', async function (req, res, next) {
 
     r.data = {
         accounts: accounts.map(v => {
-            let serviceType = v.get('serviceType')
-            let a = {
+            return {
                 id: v.get('objectId'),
                 remarks: v.get('remarks'),
-                serviceType: serviceType,
+                serviceType: v.get('serviceType'),
                 host: v.get('host'),
                 port: v.get('port'),
+                method: v.get('method'),
+                protocol: v.get('protocol'),
             }
-
-            if (v.get(`${serviceType}Setting`).isShadowrocket) {
-                a.method = 'auto'
-                a.protocol = v.get(`${serviceType}Setting`).net
-            } else {
-                a.method = v.get(`${serviceType}Setting`).method
-                a.protocol = v.get(`${serviceType}Setting`).obfs
-            }
-
-            return a
         }),
         subscribes: subscribes.map(v => {
             return {
@@ -187,8 +167,7 @@ router.get('/refresh', async function (req, res, next) {
             return {
                 id: v.get('objectId'),
                 linkId: v.get('linkId'),
-                sourceID: v.get('sourceID'),
-                sourceURL: v.get('sourceURL'),
+                sourceAccounts: v.get('sourceAccounts'),
                 isEnable: v.get('isEnable'),
             }
         }),
@@ -260,20 +239,21 @@ router.post('/subscribe/update', async function (req, res, next) {
             }
 
             let arr = []
-            serverList.forEach(v => {
-                let [type, data, queryString] = uncompose(v)
+            serverList.forEach(sourceURL => {
+                let [type, data, queryString] = uncompose(sourceURL)
                 if (type !== 'ss') {
                     let funcName = `deserialize${type.replace(/^\S/, s => s.toUpperCase())}`
-                    arr.push(generate[funcName](data, queryString))
+                    arr.push(Object.assign({
+                        sourceURL
+                    }, generate[funcName](data, queryString)))
                 }
             })
 
-            let subscribe = subscribes[i]
-            arr.forEach((v, i) => {
-                arr[i].subscribe = subscribe
-                arr[i].user = req.currentUser
-            })
-            accounts.push(...arr)
+            accounts.push(...(arr.map(v => {
+                v.subscribe = subscribes[i]
+                v.user = req.currentUser
+                return v
+            })))
         }
     })
 
@@ -291,17 +271,22 @@ router.post('/subscribe/update', async function (req, res, next) {
         [r.message, r.state] = ['添加出现错误', 2]
         return res.json(r)
     } else {
-        if (!result) {
+        if (!result || Object.keys(result).length === 0) {
             [r.message, r.state] = ['添加失败', 1]
         } else {
-            [r.message, r.state] = ['添加成功', 0]
+            [r.message, r.state, r.data] = ['添加成功', 0, result.map(v => {
+                let val = v.toJSON()
+                delete val.user
+                delete val.subscribe
+                return val
+            })]
         }
     }
 
     return res.json(r)
 })
 
-router.post('/subscribe/clear', async function (req, res, next) {
+router.post('/account/clear', async function (req, res, next) {
     let r = response()
 
     let [err, result] = await execute(AV.Cloud.run('deleteAccountOther', {
@@ -312,7 +297,7 @@ router.post('/subscribe/clear', async function (req, res, next) {
         [r.message, r.state] = ['清空出现错误', 2]
         return res.json(r)
     } else {
-        if (!result) {
+        if (!result || Object.keys(result).length === 0) {
             [r.message, r.state] = ['清空失败', 1]
         } else {
             [r.message, r.state] = ['清空成功', 0]

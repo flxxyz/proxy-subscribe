@@ -96,15 +96,13 @@ AV.Cloud.define('getLinkContent', async function (req) {
 AV.Cloud.define('addLink', async function (req) {
     let linkId = req.params.linkId
     let content = req.params.content
-    let sourceID = req.params.sourceID
-    let sourceURL = req.params.sourceURL
+    let sourceAccounts = req.params.sourceAccounts
     let user = req.params.user
 
     let link = new AV.Object(tableName)
     link.set('linkId', linkId)
     link.set('content', content)
-    link.set('sourceID', sourceID)
-    link.set('sourceURL', sourceURL)
+    link.set('sourceAccounts', sourceAccounts)
     link.set('user', user)
     let [err, res] = await util.execute(link.save())
     if (err) {

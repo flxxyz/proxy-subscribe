@@ -77,10 +77,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if ($generate.length > 0) {
         $generate.forEach($el => {
             $el.addEventListener('click', function (event) {
-                layer.msg('暂时无法使用')
-                return;
                 var ids = []
-                proxy.getElementAll(`.account`).forEach($item => {
+                proxy.getElementAll('.account').forEach($item => {
                     var checkbox = $item.querySelector('input.checkbox')
                     if (checkbox.checked) {
                         ids.push($item.querySelector('.account-id').value)
@@ -88,40 +86,52 @@ document.addEventListener('DOMContentLoaded', function () {
                 })
 
                 if (ids.length > 0) {
-                    proxy.request({
-                        method: 'post',
-                        url: '/api/generate',
-                        data: {
-                            ids: ids.join(','),
-                        },
-                        success: function (res) {
-                            console.log('res:', res)
-                            refresh()
-                        }
+                    layer.confirm(`是否生成这${ids.length}项订阅链接？`, {
+                        title: '生成订阅链接',
+                        btn: ['确认', '取消']
+                    }, function () {
+                        proxy.request({
+                            method: 'post',
+                            url: '/api/generate',
+                            data: {
+                                ids: ids.join(','),
+                            },
+                            success: function (res) {
+                                // console.log(res)
+                                layer.msg('生成订阅链接成功！')
+                            },
+                            complete: function () {
+                                refresh(2)
+                            },
+                            timeout: function (e) {
+                                layer.msg('生成订阅链接超时', {
+                                    icon: 5
+                                })
+                            },
+                        })
                     })
                 }
             })
         })
     }
 
-    var $clearAccount = proxy.getElementAll('.clear-account')
-    if ($clearAccount.length > 0) {
-        $clearAccount.forEach(function ($el) {
+    var $clear = proxy.getElementAll('.clear')
+    if ($clear.length > 0) {
+        $clear.forEach(function ($el) {
             $el.addEventListener('click', function (event) {
                 if (proxy.getElementAll(`.${$el.dataset.type}`).length > 0) {
-                    layer.confirm('', {
+                    layer.confirm('是否清除所有服务器？', {
                         title: '清空',
-                        content: '是否清除所有服务器？',
                         btn: ['确认', '取消']
                     }, function () {
                         proxy.request({
                             method: 'post',
-                            url: '/api/subscribe/clear',
+                            url: '/api/account/clear',
                             success: function () {
                                 layer.msg('清空成功！')
                             },
                             complete: function () {
-                                refresh()
+                                refresh(2)
                             }
                         })
                     })
@@ -145,9 +155,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 })
 
                 if (ids.length > 0) {
-                    layer.confirm('', {
+                    layer.confirm(`是否删除这${ids.length}项？`, {
                         title: '删除',
-                        content: `是否删除这${ids.length}项？`,
                         btn: ['确认', '取消']
                     }, function () {
                         proxy.request({
@@ -159,7 +168,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             },
                             success: function (res) {
                                 layer.msg('成功')
-                                refresh()
+                            },
+                            complete: function () {
+                                refresh(2)
                             }
                         })
                     })
@@ -214,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     },
                     complete: function () {
                         $el.classList.remove('is-loading')
-                        refresh()
+                        refresh(2)
                     }
                 })
             })
@@ -304,25 +315,29 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     reListener()
 
-    function refresh(className) {
-        let loading = layer.msg('加载中', {
-            icon: 16,
-            shade: 0.01,
-            time: 18500,
-        })
+    function refresh(seccond = 0) {
+        let t = 1000 * seccond
+        setTimeout(function () {
+            let loading = layer.msg('加载中', {
+                icon: 16,
+                shade: 0.01,
+                time: 1800,
+            })
 
+            refreshRequest(loading)
+        }, t)
+    }
+
+    function refreshRequest(layerId) {
         proxy.request({
             method: 'get',
             url: '/api/refresh',
-            data: {
-                className,
-            },
             success: function (res) {
-                layer.close(loading)
+                layer.close(layerId)
                 let result = JSON.parse(res)
-                let accounts = result.data.accounts
+
                 $('.account').remove()
-                accounts.forEach(a => {
+                result.data.accounts.forEach(a => {
                     let account = template.accounts
                         .replace('<%ID%>', a.id)
                         .replace('<%REMARKS%>', a.remarks)
@@ -334,9 +349,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     $('.accounts tbody').append(account)
                 })
 
-                let subscribes = result.data.subscribes
                 $('.subscribe').remove()
-                subscribes.forEach(s => {
+                result.data.subscribes.forEach(s => {
                     let subscribe = template.subscribes
                         .replace('<%ID%>', s.id)
                         .replace('<%REMARKS%>', s.remarks)
@@ -345,21 +359,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     $('.subscribes tbody').append(subscribe)
                 })
 
-                let links = result.data.links
                 $('.link').remove()
-                links.forEach(l => {
-                    let ids = l.sourceID.map(id => {
-                        return `<span class='id'>${id}</span>`
-                    })
-                    let urls = l.sourceURL.map(url => {
-                        return `<a class='url' href='javascript:;'>${url}</a>`
+                result.data.links.forEach(l => {
+                    let ids = l.sourceAccounts.map(account => {
+                        return `<span class='id'>${account.id}</span>`
                     })
 
                     let link = template.links
                         .replace('<%ID%>', l.id)
                         .replace('<%LINK_ID%>', l.linkId)
                         .replace('<%SOURCE_ID%>', ids.join(''))
-                        .replace('<%SOURCE_URL%>', urls.join(''))
                         .replace('<%IS_ENABLE%>', l.isEnable ? 'checked' : '')
                     $('.links tbody').append(link)
                 })

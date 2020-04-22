@@ -109,20 +109,27 @@ AV.Cloud.define('addAccountIn', async function (req) {
             a.set('port', account.port.toString())
             a.set('remarks', decodeURIComponent(account.remarks))
             a.set('serviceType', account.serviceType)
-            a.set('ssrSetting', account.ssrSetting || {})
-            a.set('vmessSetting', account.vmessSetting || {})
-            a.set('socksSetting', account.socksSetting || {})
+            a.set('setting', account.setting || {})
+            a.set('sourceURL', account.sourceURL)
+            a.set('method', account.method)
+            a.set('protocol', account.protocol)
             a.set('user', account.user)
             a.set('subscribe', account.subscribe)
             objects.push(a)
         }
     })
 
+    // console.log(objects)
+
     let [err, res] = await util.execute(AV.Object.saveAll(objects))
     if (err) {
         console.log(err.message)
         return false
     } else {
-        return res
+        if (!res || Object.keys(res).length === 0) {
+            return false
+        } else {
+            return res
+        }
     }
 })

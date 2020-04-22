@@ -38,9 +38,8 @@
                                 </div>
                             </div>
                         </div>
-                        <a class="button is-warning generate" data-type="normal">生成默认订阅链接</a>
-                        <a class="button is-warning generate" data-type="shadowrocket">生成Shadowrocket订阅链接</a>
-                        <a class="button is-danger clear-account" data-type="account">清空</a>
+                        <a class="button is-warning generate">生成订阅链接</a>
+                        <a class="button is-danger clear" data-type="account">清空</a>
                     </div>
                     <div class="column is-half">
                         <div class="field has-addons has-addons-right">
@@ -188,9 +187,8 @@
                                     <input class="choose" type="checkbox" data-type="link">
                                 </label>
                             </th>
-                            <th class="has-text-left" width="380rem">订阅ID</th>
-                            <th class="has-text-left" width="120rem">服务器ID</th>
-                            <th class="has-text-left" width="120rem">包含的URL</th>
+                            <th class="has-text-left" width="360rem">订阅ID</th>
+                            <th class="has-text-left" width="180rem">原始服务器ID</th>
                             <th class="has-text-right" width="100rem">禁用/使用</th>
                         </tr>
                     </thead>
@@ -207,13 +205,8 @@
                                 <a href="javascript:;"><%= link.linkId %></a>
                             </td>
                             <td class="ids">
-                                <% for(let id of link.sourceID) {  %>
-                                <span class="id"><%= id %></span>
-                                <% } %>
-                            </td>
-                            <td class="urls">
-                                <% for(let url of link.sourceURL) {  %>
-                                <a class="url" href="javascript:;"><%= url %></a>
+                                <% for(let account of link.sourceAccounts) {  %>
+                                <span class="id"><%= account.id %></span>
                                 <% } %>
                             </td>
                             <td class="has-text-right is-enable">

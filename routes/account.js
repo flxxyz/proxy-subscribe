@@ -23,24 +23,15 @@ router.get('/', async function (req, res, next) {
 
     res.render('account', {
         accounts: accounts.map(v => {
-            let serviceType = v.get('serviceType')
-            let a = {
+            return {
                 id: v.get('objectId'),
                 remarks: v.get('remarks'),
-                serviceType: serviceType,
+                serviceType: v.get('serviceType'),
                 host: v.get('host'),
                 port: v.get('port'),
+                method: v.get('method'),
+                protocol: v.get('protocol'),
             }
-
-            if (v.get(`${serviceType}Setting`).isShadowrocket) {
-                a.method = 'auto'
-                a.protocol = v.get(`${serviceType}Setting`).net
-            } else {
-                a.method = v.get(`${serviceType}Setting`).method
-                a.protocol = v.get(`${serviceType}Setting`).obfs
-            }
-
-            return a
         }),
         subscribes: subscribes.map(v => {
             return {
@@ -54,8 +45,7 @@ router.get('/', async function (req, res, next) {
             return {
                 id: v.get('objectId'),
                 linkId: v.get('linkId'),
-                sourceID: v.get('sourceID'),
-                sourceURL: v.get('sourceURL'),
+                sourceAccounts: v.get('sourceAccounts'),
                 isEnable: v.get('isEnable'),
             }
         }),

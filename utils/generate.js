@@ -10,8 +10,9 @@ let AccountTemplate = {
     port: '',
     remarks: '',
     serviceType: '',
-    vmessSetting: {},
-    ssrSetting: {},
+    method: 'auto',
+    protocol: '',
+    setting: {},
 }
 
 const serializeVmess = (template, value) => {
@@ -62,29 +63,36 @@ const deserializeVmess = (data, qs) => {
 
     let template = clone(AccountTemplate)
     template.serviceType = 'vmess'
-    template.vmessSetting.isShadowrocket = isShadowrocket
+    template.setting = {
+        isShadowrocket,
+        content: data,
+        queryString: qs.all()
+    }
 
-    if (isShadowrocket) {
-        template.remarks = data.ps
-        template.host = data.add
-        template.port = data.port
-        template.vmessSetting = Object.assign(template.vmessSetting, data)
-    } else {
+    if (!isShadowrocket) {
         let newData = []
         data = data.split('@')
         data.forEach(v => newData.push.apply(newData, v.split(':')))
         template.host = newData[2]
         template.port = newData[3]
         template.remarks = qs.remarks
-        template.vmessSetting.method = newData[0]
-        template.vmessSetting.password = newData[1]
-        template.vmessSetting.host = newData[2]
-        template.vmessSetting.port = newData[3]
-        template.vmessSetting.remarks = qs.remarks || ''
-        template.vmessSetting.obfs = ['http', 'h2', 'websocket', 'mkcp'].includes(qs.obfs) ? qs.obfs : 'none'
-        template.vmessSetting.obfsParam = qs.obfsParam || ''
-        template.vmessSetting.path = qs.path || ''
-        template.vmessSetting.tls = qs.tls || ''
+        template.method = newData[0]
+        template.protocol = ['http', 'h2', 'websocket', 'mkcp'].includes(qs.obfs) ? qs.obfs : 'none'
+        // template.vmessSetting.method = newData[0]
+        // template.vmessSetting.password = newData[1]
+        // template.vmessSetting.host = newData[2]
+        // template.vmessSetting.port = newData[3]
+        // template.vmessSetting.remarks = qs.remarks || ''
+        // template.vmessSetting.obfs = ['http', 'h2', 'websocket', 'mkcp'].includes(qs.obfs) ? qs.obfs : 'none'
+        // template.vmessSetting.obfsParam = qs.obfsParam || ''
+        // template.vmessSetting.path = qs.path || ''
+        // template.vmessSetting.tls = qs.tls || ''
+    } else {
+        template.remarks = data.ps
+        template.host = data.add
+        template.port = data.port
+        template.protocol = data.net
+        // template.vmessSetting = Object.assign(template.vmessSetting, data)
     }
 
     return template
@@ -112,11 +120,10 @@ const deserializeSsr = (data, qs) => {
     return template
 }
 
-const updateSubscribe = (urls) => {
-    let arr = []
+const updateSubscribe = (urls, arr = []) => {
     urls.forEach(url => arr.push(requestOrigin({
         url,
-        timeout: 15000,
+        T: 15000,
     })))
     return Promise.all(arr)
 }
