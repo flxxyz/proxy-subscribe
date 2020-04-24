@@ -3,7 +3,7 @@ const util = require('../utils/util')
 
 let tableName = 'Link'
 if (process.env.LEANCLOUD_APP_ENV === 'development') {
-    tableName = 'LinkDev'
+    tableName = 'Link'
 }
 
 AV.Cloud.define('getLink', async function (req) {
@@ -86,7 +86,7 @@ AV.Cloud.define('getLinkContent', async function (req) {
         return ''
     }
 
-    if (link.get('isEnable')) {
+    if (!link.get('isEnable')) {
         return ''
     }
 

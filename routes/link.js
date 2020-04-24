@@ -18,7 +18,7 @@ router.get('/:linkId', async function (req, res, next) {
     }))
 
     if (getLinkError) {
-        return res.redirect('/')
+        return res.send('')
     }
 
     if (!link) {
